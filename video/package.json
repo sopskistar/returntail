@@ -1,0 +1,20 @@
+{
+  "name": "returntail-engineering-preview",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.tsx",
+    "render": "remotion render src/index.tsx ReturnTailPreview ../artifacts/video/ReturnTail-preview.mp4 --codec=h264 --crf=18 --concurrency=2",
+    "still": "remotion still src/index.tsx ReturnTailPreview ../artifacts/video/style-proof.png --frame=90"
+  },
+  "dependencies": {
+    "remotion": "4.0.541",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@remotion/cli": "4.0.541",
+    "@types/react": "19.3.0",
+    "typescript": "5.9.3"
+  }
+}
