@@ -11,3 +11,8 @@ artifacts/
 *.swp
 *.swo
 .DS_Store
+video/public/
+/video/node_modules
+.impeccable/review/
+.impeccable/questions/
+.impeccable/mocks/

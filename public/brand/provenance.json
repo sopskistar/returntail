@@ -1,0 +1,8 @@
+{
+  "origin": "Original ReturnTail vectors rendered by scripts/brand-assets.mjs; no generated or stock raster artwork",
+  "palette": {
+    "saffron": "#f3bc53",
+    "plum": "#2e1c36"
+  },
+  "note": "Rethink Sans OFL lettering outlined from the exact self-hosted font with Fontkit; wordmark weight650, headline550. App body uses Manrope OFL."
+}

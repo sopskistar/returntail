@@ -1,0 +1,405 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-17T13:46:52.400561+00:00",
+  "title": "Design System: ReturnTail",
+  "extensions": {
+    "colorMeta": {
+      "saffron": {
+        "role": "primary",
+        "displayName": "Saffron",
+        "tonalRamp": [
+          "oklch(15% 0.0408 80.95)",
+          "oklch(27% 0.0884 80.95)",
+          "oklch(39% 0.1156 80.95)",
+          "oklch(51% 0.1360 80.95)",
+          "oklch(63% 0.1360 80.95)",
+          "oklch(75% 0.1156 80.95)",
+          "oklch(87% 0.0680 80.95)",
+          "oklch(95% 0.0272 80.95)"
+        ]
+      },
+      "saffron-soft": {
+        "role": "primary",
+        "displayName": "Saffron Soft",
+        "tonalRamp": [
+          "oklch(15% 0.0256 83.20)",
+          "oklch(27% 0.0554 83.20)",
+          "oklch(39% 0.0724 83.20)",
+          "oklch(51% 0.0852 83.20)",
+          "oklch(63% 0.0852 83.20)",
+          "oklch(75% 0.0724 83.20)",
+          "oklch(87% 0.0426 83.20)",
+          "oklch(95% 0.0170 83.20)"
+        ]
+      },
+      "plum": {
+        "role": "secondary",
+        "displayName": "Plum",
+        "tonalRamp": [
+          "oklch(15% 0.0159 314.89)",
+          "oklch(27% 0.0344 314.89)",
+          "oklch(39% 0.0449 314.89)",
+          "oklch(51% 0.0529 314.89)",
+          "oklch(63% 0.0529 314.89)",
+          "oklch(75% 0.0449 314.89)",
+          "oklch(87% 0.0264 314.89)",
+          "oklch(95% 0.0106 314.89)"
+        ]
+      },
+      "plum-light": {
+        "role": "secondary",
+        "displayName": "Plum Light",
+        "tonalRamp": [
+          "oklch(15% 0.0183 316.18)",
+          "oklch(27% 0.0396 316.18)",
+          "oklch(39% 0.0518 316.18)",
+          "oklch(51% 0.0609 316.18)",
+          "oklch(63% 0.0609 316.18)",
+          "oklch(75% 0.0518 316.18)",
+          "oklch(87% 0.0304 316.18)",
+          "oklch(95% 0.0122 316.18)"
+        ]
+      },
+      "plum-muted": {
+        "role": "neutral",
+        "displayName": "Plum Muted",
+        "tonalRamp": [
+          "oklch(15% 0.0124 317.22)",
+          "oklch(27% 0.0270 317.22)",
+          "oklch(39% 0.0352 317.22)",
+          "oklch(51% 0.0415 317.22)",
+          "oklch(63% 0.0415 317.22)",
+          "oklch(75% 0.0352 317.22)",
+          "oklch(87% 0.0207 317.22)",
+          "oklch(95% 0.0083 317.22)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "tonalRamp": [
+          "oklch(15% 0.0000 89.88)",
+          "oklch(27% 0.0000 89.88)",
+          "oklch(39% 0.0000 89.88)",
+          "oklch(51% 0.0000 89.88)",
+          "oklch(63% 0.0000 89.88)",
+          "oklch(75% 0.0000 89.88)",
+          "oklch(87% 0.0000 89.88)",
+          "oklch(95% 0.0000 89.88)"
+        ]
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "Ground",
+        "tonalRamp": [
+          "oklch(15% 0.0013 314.80)",
+          "oklch(27% 0.0029 314.80)",
+          "oklch(39% 0.0038 314.80)",
+          "oklch(51% 0.0045 314.80)",
+          "oklch(63% 0.0045 314.80)",
+          "oklch(75% 0.0038 314.80)",
+          "oklch(87% 0.0022 314.80)",
+          "oklch(95% 0.0009 314.80)"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "tonalRamp": [
+          "oklch(15% 0.0045 312.23)",
+          "oklch(27% 0.0097 312.23)",
+          "oklch(39% 0.0127 312.23)",
+          "oklch(51% 0.0150 312.23)",
+          "oklch(63% 0.0150 312.23)",
+          "oklch(75% 0.0127 312.23)",
+          "oklch(87% 0.0075 312.23)",
+          "oklch(95% 0.0030 312.23)"
+        ]
+      },
+      "success": {
+        "role": "semantic",
+        "displayName": "Success",
+        "tonalRamp": [
+          "oklch(15% 0.0225 164.29)",
+          "oklch(27% 0.0487 164.29)",
+          "oklch(39% 0.0636 164.29)",
+          "oklch(51% 0.0749 164.29)",
+          "oklch(63% 0.0749 164.29)",
+          "oklch(75% 0.0636 164.29)",
+          "oklch(87% 0.0374 164.29)",
+          "oklch(95% 0.0150 164.29)"
+        ]
+      },
+      "success-soft": {
+        "role": "semantic",
+        "displayName": "Success Soft",
+        "tonalRamp": [
+          "oklch(15% 0.0055 155.81)",
+          "oklch(27% 0.0118 155.81)",
+          "oklch(39% 0.0155 155.81)",
+          "oklch(51% 0.0182 155.81)",
+          "oklch(63% 0.0182 155.81)",
+          "oklch(75% 0.0155 155.81)",
+          "oklch(87% 0.0091 155.81)",
+          "oklch(95% 0.0036 155.81)"
+        ]
+      },
+      "danger": {
+        "role": "semantic",
+        "displayName": "Danger",
+        "tonalRamp": [
+          "oklch(15% 0.0451 20.30)",
+          "oklch(27% 0.0977 20.30)",
+          "oklch(39% 0.1278 20.30)",
+          "oklch(51% 0.1503 20.30)",
+          "oklch(63% 0.1503 20.30)",
+          "oklch(75% 0.1278 20.30)",
+          "oklch(87% 0.0752 20.30)",
+          "oklch(95% 0.0301 20.30)"
+        ]
+      },
+      "danger-soft": {
+        "role": "semantic",
+        "displayName": "Danger Soft",
+        "tonalRamp": [
+          "oklch(15% 0.0050 3.65)",
+          "oklch(27% 0.0109 3.65)",
+          "oklch(39% 0.0142 3.65)",
+          "oklch(51% 0.0167 3.65)",
+          "oklch(63% 0.0167 3.65)",
+          "oklch(75% 0.0142 3.65)",
+          "oklch(87% 0.0083 3.65)",
+          "oklch(95% 0.0033 3.65)"
+        ]
+      },
+      "warning": {
+        "role": "semantic",
+        "displayName": "Warning",
+        "tonalRamp": [
+          "oklch(15% 0.0297 65.77)",
+          "oklch(27% 0.0644 65.77)",
+          "oklch(39% 0.0843 65.77)",
+          "oklch(51% 0.0992 65.77)",
+          "oklch(63% 0.0992 65.77)",
+          "oklch(75% 0.0843 65.77)",
+          "oklch(87% 0.0496 65.77)",
+          "oklch(95% 0.0198 65.77)"
+        ]
+      },
+      "warning-soft": {
+        "role": "semantic",
+        "displayName": "Warning Soft",
+        "tonalRamp": [
+          "oklch(15% 0.0112 83.03)",
+          "oklch(27% 0.0242 83.03)",
+          "oklch(39% 0.0317 83.03)",
+          "oklch(51% 0.0373 83.03)",
+          "oklch(63% 0.0373 83.03)",
+          "oklch(75% 0.0317 83.03)",
+          "oklch(87% 0.0186 83.03)",
+          "oklch(95% 0.0075 83.03)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Large introductory headings; surface-specific overrides are documented in DESIGN.md."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Tertiary headings; operational panel headings use their documented override."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Reading copy and interface text."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Persistent field labels."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "Lowercase Rethink Sans lettering at weight 650: live in the app, exact Fontkit glyph outlines in standalone SVG/PNG exports."
+      }
+    },
+    "shadows": [
+      {
+        "name": "instructional-record",
+        "value": "0 18px 46px color-mix(in srgb,var(--color-ink) 12%,transparent)",
+        "purpose": "Homepage instructional resolution record only."
+      },
+      {
+        "name": "wallet-dialog",
+        "value": "0 28px 90px color-mix(in srgb,var(--color-ink) 25%,transparent)",
+        "purpose": "Native modal wallet connection dialog."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(.16,1,.3,1)",
+        "purpose": "Control state transitions and state entry."
+      },
+      {
+        "name": "duration",
+        "value": "180ms",
+        "purpose": "Control background and press transition."
+      },
+      {
+        "name": "duration-long",
+        "value": "420ms",
+        "purpose": "State entry from opacity .6 and translateY(6px)."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.hero-record{transform:none}}",
+        "purpose": "Honor the user motion preference."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-desktop",
+        "value": "1100px"
+      },
+      {
+        "name": "tablet",
+        "value": "800px"
+      },
+      {
+        "name": "mobile",
+        "value": "600px"
+      },
+      {
+        "name": "wide-desktop",
+        "value": "1600px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Sentence-case action with visible focus, hover, press, and disabled states.",
+      "html": "<button class=\"ds-button\">Create payment request<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M7 17 17 7M7 7h10v10\"/></svg></button>",
+      "css": ".ds-button{display:inline-flex;min-height:48px;padding:12px 20px;gap:12px;justify-content:center;align-items:center;border:1px solid var(--color-ink,#2e1c36);border-radius:var(--radius-control,7px);background:var(--color-ink,#2e1c36);color:var(--color-paper,#fff);font-family:var(--font-body,\"Manrope Variable\",sans-serif);font-size:14px;font-weight:650;line-height:1.5;text-decoration:none;cursor:pointer;transition:background-color var(--duration,180ms) var(--ease-out,cubic-bezier(.16,1,.3,1)),transform var(--duration,180ms) var(--ease-out,cubic-bezier(.16,1,.3,1))}.ds-button:hover{background:var(--p-plum-light,#4c3555)}.ds-button:active{transform:translateY(1px)}.ds-button:focus-visible{outline:3px solid var(--color-focus,#4c3555);outline-offset:4px}.ds-button:disabled{cursor:not-allowed;opacity:.55}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Sentence-case action with visible focus, hover, press, and disabled states.",
+      "html": "<button class=\"ds-button\">Review details</button>",
+      "css": ".ds-button{display:inline-flex;min-height:48px;padding:12px 20px;gap:12px;justify-content:center;align-items:center;border:1px solid var(--color-ink,#2e1c36);border-radius:var(--radius-control,7px);background:var(--color-ink,#2e1c36);color:var(--color-paper,#fff);font-family:var(--font-body,\"Manrope Variable\",sans-serif);font-size:14px;font-weight:650;line-height:1.5;text-decoration:none;cursor:pointer;transition:background-color var(--duration,180ms) var(--ease-out,cubic-bezier(.16,1,.3,1)),transform var(--duration,180ms) var(--ease-out,cubic-bezier(.16,1,.3,1))}.ds-button:hover{background:var(--p-plum-light,#4c3555)}.ds-button:active{transform:translateY(1px)}.ds-button:focus-visible{outline:3px solid var(--color-focus,#4c3555);outline-offset:4px}.ds-button:disabled{cursor:not-allowed;opacity:.55}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-button{background:var(--color-paper,#fff);color:var(--color-ink,#2e1c36);border-color:var(--color-rule,#ded8e2)}.ds-button:hover{background:var(--color-ground,#f5f3f6)}"
+    },
+    {
+      "name": "Light button",
+      "kind": "button",
+      "refersTo": "button-light",
+      "description": "Saffron action for plum sections, with the saffron keyboard focus used on dark-section links.",
+      "html": "<a class=\"ds-button\" href=\"#payment-request\">Create a payment request<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M7 17 17 7M7 7h10v10\"/></svg></a>",
+      "css": ".ds-button{display:inline-flex;min-height:48px;padding:12px 20px;gap:12px;justify-content:center;align-items:center;border:1px solid var(--color-ink,#2e1c36);border-radius:var(--radius-control,7px);background:var(--color-ink,#2e1c36);color:var(--color-paper,#fff);font-family:var(--font-body,\"Manrope Variable\",sans-serif);font-size:14px;font-weight:650;line-height:1.5;text-decoration:none;cursor:pointer;transition:background-color var(--duration,180ms) var(--ease-out,cubic-bezier(.16,1,.3,1)),transform var(--duration,180ms) var(--ease-out,cubic-bezier(.16,1,.3,1))}.ds-button:hover{background:var(--p-plum-light,#4c3555)}.ds-button:active{transform:translateY(1px)}.ds-button:focus-visible{outline:3px solid var(--color-focus,#4c3555);outline-offset:4px}.ds-button:disabled{cursor:not-allowed;opacity:.55}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-button{background:var(--color-accent,#f3bc53);color:var(--color-ink,#2e1c36);border-color:var(--color-accent,#f3bc53)}.ds-button:hover{background:var(--color-accent-soft,#ffdfa2)}.ds-button:focus-visible{outline-color:var(--color-accent,#f3bc53)}"
+    },
+    {
+      "name": "Danger button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Sentence-case action with visible focus, hover, press, and disabled states.",
+      "html": "<button class=\"ds-button\">Reject request</button>",
+      "css": ".ds-button{display:inline-flex;min-height:48px;padding:12px 20px;gap:12px;justify-content:center;align-items:center;border:1px solid var(--color-ink,#2e1c36);border-radius:var(--radius-control,7px);background:var(--color-ink,#2e1c36);color:var(--color-paper,#fff);font-family:var(--font-body,\"Manrope Variable\",sans-serif);font-size:14px;font-weight:650;line-height:1.5;text-decoration:none;cursor:pointer;transition:background-color var(--duration,180ms) var(--ease-out,cubic-bezier(.16,1,.3,1)),transform var(--duration,180ms) var(--ease-out,cubic-bezier(.16,1,.3,1))}.ds-button:hover{background:var(--p-plum-light,#4c3555)}.ds-button:active{transform:translateY(1px)}.ds-button:focus-visible{outline:3px solid var(--color-focus,#4c3555);outline-offset:4px}.ds-button:disabled{cursor:not-allowed;opacity:.55}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-button{background:var(--color-paper,#fff);color:var(--color-danger,#a02d37);border-color:var(--p-red-soft,#fbecef)}.ds-button:hover{background:var(--p-red-soft,#fbecef)}"
+    },
+    {
+      "name": "Labeled field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Persistent label, neutral border, and explicit keyboard focus.",
+      "html": "<div class=\"ds-field\"><label for=\"ds-reference\">Purchase reference</label><input id=\"ds-reference\" placeholder=\"Your order reference\"/><small>Use the reference on your purchase.</small></div>",
+      "css": ".ds-field{display:grid;gap:8px;font-family:var(--font-body,\"Manrope Variable\",sans-serif);color:var(--color-ink,#2e1c36)}.ds-field label{font-size:13px;font-weight:650}.ds-field input{min-width:0;min-height:48px;padding:12px 16px;border:1px solid var(--color-rule,#ded8e2);border-radius:var(--radius-control,7px);background:var(--color-paper,#fff);color:inherit;font:inherit;font-size:14px}.ds-field input::placeholder,.ds-field small{color:var(--color-muted,#6d5c73)}.ds-field small{font-size:11px}.ds-field input:focus-visible{outline:2px solid var(--color-focus,#4c3555);outline-offset:2px}.ds-field input[aria-invalid=true]{border-color:var(--color-danger,#a02d37)}"
+    },
+    {
+      "name": "Workspace navigation",
+      "kind": "nav",
+      "description": "Current page is expressed by text, underline, and aria-current; navigation keeps the established 44px minimum action target.",
+      "html": "<nav class=\"ds-tabs\" aria-label=\"Workspace\"><a href=\"#orders\" aria-current=\"page\">Orders</a><a href=\"#refunds\">Refunds</a><a href=\"#settings\">Settings</a></nav>",
+      "css": ".ds-tabs{display:flex;gap:24px;border-bottom:1px solid var(--color-rule,#ded8e2);overflow-x:auto;white-space:nowrap;line-height:1.65;font-family:var(--font-body,\"Manrope Variable\",sans-serif)}.ds-tabs a{font-size:13px;font-weight:600;padding:12px 0;color:var(--color-muted,#6d5c73);text-decoration:none;border-bottom:2px solid transparent}.ds-tabs a[aria-current=page]{color:var(--color-ink,#2e1c36);border-color:var(--color-ink,#2e1c36)}.ds-tabs a:hover{text-decoration:underline;text-underline-offset:4px}.ds-tabs a:focus-visible{outline:3px solid var(--color-focus,#4c3555);outline-offset:4px}@media(max-width:600px){.ds-tabs{gap:20px}.ds-tabs a{font-size:12px}}"
+    },
+    {
+      "name": "Network label",
+      "kind": "chip",
+      "refersTo": "network-label",
+      "description": "Informational network identity, never a proof or action control.",
+      "html": "<span class=\"ds-network\">Chipnet \u2014 test coins only</span>",
+      "css": ".ds-network{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:20px;background:var(--color-accent-soft,#ffdfa2);color:var(--color-ink,#2e1c36);font-family:var(--font-body,\"Manrope Variable\",sans-serif);font-size:11px;font-weight:650}"
+    },
+    {
+      "name": "Record panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Flat bordered container with separate heading and record body.",
+      "html": "<section class=\"ds-panel\"><header class=\"ds-panel-heading\"><h2>Purchase details</h2></header><div class=\"ds-panel-body\"><p>Purchase and refund evidence appears here.</p></div></section>",
+      "css": ".ds-panel{background:var(--color-paper,#fff);color:var(--color-ink,#2e1c36);border:1px solid var(--color-rule,#ded8e2);border-radius:var(--radius,12px);overflow:clip}.ds-panel-heading{padding:24px 28px;border-bottom:1px solid var(--color-rule,#ded8e2)}.ds-panel-heading h2{margin:0;font-family:var(--font-display,\"Rethink Sans Variable\",sans-serif);font-size:21px;font-weight:550;line-height:1.15;letter-spacing:-.02em}.ds-panel-body{padding:28px}.ds-panel-body p{margin:0;font-family:var(--font-body,\"Manrope Variable\",sans-serif);font-size:13px;line-height:1.65;color:var(--color-muted,#6d5c73)}@media(max-width:600px){.ds-panel-heading,.ds-panel-body{padding:20px}.ds-panel-heading h2{font-size:20px}}"
+    },
+    {
+      "name": "Confirmed status",
+      "kind": "chip",
+      "refersTo": "status-confirmed",
+      "description": "Success is reserved for confirmation; a readable label accompanies the check.",
+      "html": "<span class=\"ds-status\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"m20 6-11 11-5-5\"/></svg>Confirmed</span>",
+      "css": ".ds-status{display:inline-flex;align-items:center;gap:8px;padding:4px 8px;border-radius:6px;font-family:var(--font-body,\"Manrope Variable\",sans-serif);font-size:11px;line-height:1.4;font-weight:650;white-space:nowrap;background:var(--p-green-soft,#e5f2e9);color:var(--color-success,#246149)}"
+    },
+    {
+      "name": "Payment progress trail",
+      "kind": "custom",
+      "description": "Four semantic stages; current and completed states carry shape and text cues. This preview shows a payment request awaiting its next step, not a real transaction.",
+      "html": "<ol class=\"ds-trail\" aria-label=\"Payment progress\"><li class=\"ds-current\" aria-current=\"step\"><span class=\"ds-node\">1</span><span>Payment request</span></li><li><span class=\"ds-node\">2</span><span>Wallet signed</span></li><li><span class=\"ds-node\">3</span><span>Observed</span></li><li><span class=\"ds-node\">4</span><span>Confirmed</span></li></ol>",
+      "css": ".ds-trail{list-style:none;display:flex;gap:0;padding:0;margin:0;font-family:var(--font-body,\"Manrope Variable\",sans-serif)}.ds-trail li{display:flex;flex:1;align-items:center;gap:8px;position:relative;font-size:11px;color:var(--color-muted,#6d5c73);padding:20px 12px 20px 0}.ds-trail li:not(:last-child)::after{content:\"\";height:1px;flex:1;background:var(--color-rule,#ded8e2);margin-left:4px}.ds-node{width:25px;height:25px;border:1px solid var(--color-rule,#ded8e2);border-radius:50%;display:grid;place-items:center;flex-shrink:0;font-size:11px;font-weight:650}.ds-trail .ds-current{color:var(--color-ink,#2e1c36);font-weight:700}.ds-current .ds-node{background:var(--color-accent,#f3bc53);border-color:var(--color-accent,#f3bc53)}.ds-complete .ds-node{background:var(--color-ink,#2e1c36);border-color:var(--color-ink,#2e1c36);color:var(--color-paper,#fff)}.ds-trail .ds-complete::after{background:var(--color-ink,#2e1c36)}@media(max-width:600px){.ds-trail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.ds-trail li{flex-direction:column;align-items:flex-start;min-width:0;line-height:1.5;padding-block:16px}.ds-node{width:21px;height:21px}.ds-trail li:not(:last-child)::after{position:absolute;left:30px;right:0;top:28px;margin:0}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "A connected resolution trail",
+    "overview": "ReturnTail makes merchant finance calm, human, and exact. Warm saffron fields introduce the product; deep plum carries words, controls, and accountability. White records on lavender-white work surfaces make purchases, decisions, and chain observations easy to inspect.\n\nThe signature is a connected trail from purchase through wallet authorization to observed settlement. It expresses progress without collapsing distinct financial states. The website combines generous introductory typography with compact operational data; the application keeps empty states honest and setup actionable. This document records the implemented local build, not a deployment or mainnet verification claim.",
+    "keyCharacteristics": [
+      "Saffron and plum identity, with restrained semantic state colors.",
+      "Rethink Sans headings and wordmark; Manrope controls and records.",
+      "Fine rules, softly rounded controls, and flat operational panels.",
+      "Explicit network, authorization, observation, and confirmation language.",
+      "Keyboard focus, responsive layouts, and reduced motion."
+    ],
+    "rules": [
+      {
+        "name": "The State Has Words Rule",
+        "body": "A state always has a readable label; status icons and color reinforce that label. Confirmation green belongs to confirmed state, never to connection or approval alone.",
+        "section": "colors"
+      },
+      {
+        "name": "The Exact Figures Rule",
+        "body": "Use tabular numerals for amounts, transaction metadata, progress numbers, and balances. Preserve address and transaction wrapping rather than clipping identifying data.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Record Rule",
+        "body": "Operational panels stay flat; use border and surface contrast to group evidence. Reserve the documented shadows for their existing roles.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** reuse the saffron/plum identity and distinct semantic state colors.",
+      "**Do** preserve visible labels, keyboard focus, minimum 44px action targets, and reduced motion.",
+      "**Do** distinguish merchant approval, wallet signing, network observation, and confirmation in words and progress.",
+      "**Do** use honest empty states and clearly instructional examples until real evidence exists.",
+      "**Do** retain original mark geometry and the Rethink Sans lowercase wordmark."
+    ],
+    "donts": [
+      "**Don't** use confirmation green for a wallet connection, approval, signature, or broadcast alone.",
+      "**Don't** turn flat operational records into floating decorative cards.",
+      "**Don't** substitute emoji or text glyphs for interface icons or the brand mark.",
+      "**Don't** present local screenshots or instructional trails as deployed mainnet proof.",
+      "**Don't** substitute fallback lettering for the exact Rethink Sans wordmark or reduce action targets below 44px."
+    ]
+  }
+}
