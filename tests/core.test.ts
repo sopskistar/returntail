@@ -1,0 +1,198 @@
+import { describe, expect, it } from 'vitest';
+import { binToHex, encodeTransactionCommon } from '@bitauth/libauth';
+import {
+  addressScript,
+  deriveAddress,
+  parseTransaction,
+  txid,
+  validateSigned,
+  verifyPayment,
+  buildPlan,
+} from '../src/core/bch';
+import { bch, sats, remaining } from '../src/core/money';
+import { walletError } from '../src/core/errors';
+import { signPlan } from '../src/client/wallet-adapter';
+import { assertOrigin } from '../src/server/security';
+import { verifyMerkle } from '../src/server/chain';
+import { RelayMsgAction } from '@wizardconnect/core';
+import { xpub, address, destination, fixturePlan, signFixture, purchaseFixture } from './fixtures';
+describe('real BCH byte parsing and authorization (isolated fixtures)', () => {
+  it('validates actual P2PKH signatures with 0x61 using the BCH VM', () => {
+    const p = fixturePlan(),
+      raw = signFixture(p);
+    expect(validateSigned(raw, p)).toBe(txid(raw));
+  });
+  it('rejects malformed purchase transaction data', () =>
+    expect(() => parseTransaction('not-a-transaction')).toThrow());
+  it('rejects a syntactically valid txid without matching bytes', () => {
+    const t = purchaseFixture();
+    expect(() => verifyPayment(t.raw, '00'.repeat(32), address, 10000, 'chipnet')).toThrow(
+      'identity',
+    );
+  });
+  it('rejects wrong recipient', () => {
+    const t = purchaseFixture(destination);
+    expect(() => verifyPayment(t.raw, t.txid, address, 10000, 'chipnet')).toThrow('output');
+  });
+  it('rejects underpayment', () => {
+    const t = purchaseFixture(address, 9999);
+    expect(() => verifyPayment(t.raw, t.txid, address, 10000, 'chipnet')).toThrow('exactly');
+  });
+  it('rejects overpayment instead of silently changing eligibility', () => {
+    const t = purchaseFixture(address, 10001);
+    expect(() => verifyPayment(t.raw, t.txid, address, 10000, 'chipnet')).toThrow();
+  });
+  it('allocates the exact recipient output index', () => {
+    const t = purchaseFixture();
+    expect(verifyPayment(t.raw, t.txid, address, 10000, 'chipnet')).toEqual({
+      vout: 0,
+      satoshis: 10000,
+    });
+  });
+  it('rejects invalid refund address', () =>
+    expect(() => addressScript('bchtest:madeup', 'chipnet')).toThrow());
+  it('rejects the wrong address network', () =>
+    expect(() => addressScript(address, 'mainnet')).toThrow('mainnet'));
+  it('rejects public-key network confusion', () =>
+    expect(() => deriveAddress(xpub, 0, 'mainnet')).toThrow('different network'));
+  it('rejects unsafe sighash flags even with valid signature bytes', () => {
+    const p = fixturePlan();
+    expect(() => validateSigned(signFixture(p, 0x41), p)).toThrow('SIGHASH');
+  });
+  it('rejects changed recipient outputs after wallet signing', () => {
+    const p = fixturePlan(),
+      tx = parseTransaction(signFixture(p));
+    tx.outputs[0].valueSatoshis--;
+    expect(() => validateSigned(binToHex(encodeTransactionCommon(tx)), p)).toThrow('differs');
+  });
+  it('rejects invalid signature against correct source output', () => {
+    const p = fixturePlan(),
+      tx = parseTransaction(signFixture(p));
+    tx.inputs[0].unlockingBytecode[10] ^= 1;
+    expect(() => validateSigned(binToHex(encodeTransactionCommon(tx)), p)).toThrow('signatures');
+  });
+  it('keeps change and recipient values within exact funding total', () => {
+    const p = fixturePlan();
+    const total = parseTransaction(p.unsignedHex).outputs.reduce((n, o) => n + o.valueSatoshis, 0n);
+    expect(total + BigInt(p.fee)).toBe(100000n);
+    expect(p.debit).toBe(p.amount + p.fee);
+  });
+  it('rejects insufficient confirmed BCH', () =>
+    expect(() => buildPlan([], destination, 1000, address, 'chipnet')).toThrow('Not enough'));
+  it('rejects duplicate matching merchant outputs', () => {
+    const t = purchaseFixture(),
+      tx = parseTransaction(t.raw);
+    tx.outputs.push({ ...tx.outputs[0] });
+    const raw = binToHex(encodeTransactionCommon(tx));
+    expect(() => verifyPayment(raw, txid(raw), address, 10000, 'chipnet')).toThrow('exactly one');
+  });
+  it('accepts a structurally matching single-leaf merkle root (not a PoW check)', () =>
+    expect(verifyMerkle('00'.repeat(32), [], 0, '00'.repeat(80))).toBe(true));
+  it('rejects incorrect merkle root', () =>
+    expect(verifyMerkle('11'.repeat(32), [], 0, '00'.repeat(80))).toBe(false));
+  it('rejects malformed merkle positions and branch elements', () => {
+    expect(verifyMerkle('00'.repeat(32), ['z'], 0, '00'.repeat(80))).toBe(false);
+    expect(verifyMerkle('00'.repeat(32), [], 1, '00'.repeat(80))).toBe(false);
+  });
+});
+describe('wallet refusal and disconnection', () => {
+  it('does not request signing from a disconnected wallet', async () => {
+    let called = false;
+    await expect(
+      signPlan(
+        {
+          isWalletDiscovered: () => false,
+          signTransaction: async () => {
+            called = true;
+            throw Error();
+          },
+        },
+        false,
+        fixturePlan(),
+      ),
+    ).rejects.toThrow('Connect');
+    expect(called).toBe(false);
+  });
+  it('propagates wallet signature rejection without a broadcast', async () => {
+    await expect(
+      signPlan(
+        {
+          isWalletDiscovered: () => true,
+          signTransaction: async () => {
+            throw Error('User rejected');
+          },
+        },
+        true,
+        fixturePlan(),
+      ),
+    ).rejects.toThrow('rejected');
+  });
+  it('passes broadcast:false and explicit source-output data', async () => {
+    const p = fixturePlan();
+    let requested = false;
+    const raw = await signPlan(
+      {
+        isWalletDiscovered: () => true,
+        signTransaction: async (req) => {
+          requested = true;
+          expect(req.transaction.broadcast).toBe(false);
+          expect(req.transaction.sourceOutputs[0].valueSatoshis).toBe(100000n);
+          return {
+            action: RelayMsgAction.SignTransactionResponse,
+            sequence: 1,
+            time: 1,
+            signedTransaction: signFixture(p),
+          };
+        },
+      },
+      true,
+      p,
+    );
+    expect(requested).toBe(true);
+    expect(txid(raw)).toHaveLength(64);
+  });
+  it('normalizes cancellation and uncertain outcome wording', () => {
+    expect(walletError(Error('reject'))).toContain('cancelled');
+    expect(walletError(Error('timeout'))).toContain('saved attempt');
+  });
+});
+describe('integer accounting and CSRF', () => {
+  it('uses exact eight-decimal BCH formatting', () => expect(bch(1)).toBe('0.00000001'));
+  it('rejects fractional, nonfinite and subdust satoshis', () => {
+    for (const value of [1.1, Infinity, NaN, 545, '10000']) expect(() => sats(value)).toThrow();
+  });
+  it('preserves the cumulative refund invariant', () => {
+    expect(remaining(10000, 2500, 5000)).toBe(2500);
+    expect(() => remaining(10000, 5001, 5000)).toThrow();
+  });
+  it('rejects cross-origin and missing-origin mutations', () => {
+    process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
+    for (const origin of ['https://evil.test', null])
+      expect(() =>
+        assertOrigin(
+          new Request('http://localhost:3000/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...(origin ? { origin } : {}) },
+          }),
+        ),
+      ).toThrow('ReturnTail');
+  });
+  it('permits same-origin JSON and rejects other content types', () => {
+    expect(() =>
+      assertOrigin(
+        new Request('http://localhost:3000/api/orders', {
+          method: 'POST',
+          headers: { origin: 'http://localhost:3000', 'Content-Type': 'application/json' },
+        }),
+      ),
+    ).not.toThrow();
+    expect(() =>
+      assertOrigin(
+        new Request('http://localhost:3000/api/orders', {
+          method: 'POST',
+          headers: { origin: 'http://localhost:3000', 'Content-Type': 'text/plain' },
+        }),
+      ),
+    ).toThrow('JSON');
+  });
+});

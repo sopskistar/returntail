@@ -1,5 +1,52 @@
 import type { Network, Plan } from '@/core/bch';
-export type Order={id:string;store_id:string;capability_hash:string;title:string;reference:string;network:Network;address:string;address_index:number;amount:string;reserved:string;settled:string;state:string;expires_at:Date;created_at:Date};
-export type Store={id:string;merchant_id:string;name:string;network:Network;receive_xpub:string|null;address_index:number};
-export type Refund={id:string;order_id:string;amount:string;address:string;reason:string;state:string;decision_note:string|null;created_at:Date;decided_at:Date|null};
-export type Attempt={id:string;order_id:string;refund_id:string|null;kind:'payment'|'refund';network:Network;state:string;plan:Plan;raw_tx:string|null;txid:string|null;confirmations:number;block_hash:string|null;expires_at:Date;created_at:Date;updated_at:Date};
+export type Order = {
+  id: string;
+  store_id: string;
+  capability_hash: string;
+  title: string;
+  reference: string;
+  network: Network;
+  address: string;
+  address_index: number;
+  amount: string;
+  reserved: string;
+  settled: string;
+  state: string;
+  expires_at: Date;
+  created_at: Date;
+};
+export type Store = {
+  id: string;
+  merchant_id: string;
+  name: string;
+  network: Network;
+  receive_xpub: string | null;
+  address_index: number;
+};
+export type Refund = {
+  id: string;
+  order_id: string;
+  amount: string;
+  address: string;
+  reason: string;
+  state: string;
+  decision_note: string | null;
+  created_at: Date;
+  decided_at: Date | null;
+};
+export type Attempt = {
+  id: string;
+  order_id: string;
+  refund_id: string | null;
+  kind: 'payment' | 'refund';
+  network: Network;
+  state: string;
+  plan: Plan;
+  raw_tx: string | null;
+  txid: string | null;
+  confirmations: number;
+  block_hash: string | null;
+  expires_at: Date;
+  created_at: Date;
+  updated_at: Date;
+};
