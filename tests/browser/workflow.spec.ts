@@ -42,6 +42,7 @@ test.describe.serial('real localhost app, no blockchain transfers', () => {
   });
   test('phone and tablet pages preserve layout and navigation', async ({ page }) => {
     for (const viewport of [
+      { width: 320, height: 740 },
       { width: 375, height: 812 },
       { width: 768, height: 1024 },
       { width: 844, height: 390 },
@@ -53,6 +54,15 @@ test.describe.serial('real localhost app, no blockchain transfers', () => {
       );
       await expect(page.getByRole('link', { name: 'Open your workspace' })).toBeVisible();
     }
+    await page.setViewportSize({ width: 834, height: 1112 });
+    await page.goto('/login');
+    expect(await page.locator('.auth-story').evaluate(story => {
+      const bounds = story.getBoundingClientRect();
+      return [...story.querySelectorAll('.state-trail li')].every(item => {
+        const rect = item.getBoundingClientRect();
+        return rect.left >= bounds.left && rect.right <= bounds.right;
+      });
+    })).toBe(true);
   });
   test('rejects unauthorized APIs and cross-origin mutations', async ({ request, baseURL }) => {
     expect((await request.get('/api/workspace')).status()).toBe(401);

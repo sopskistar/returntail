@@ -33,7 +33,7 @@ export function CompetitionBanner() {
           </a>
         ) : (
           <a href="/evidence#submission">
-            Submission setup: presentation & donation details pending
+            Presentation publishing in progress
             <ArrowUpRight size={16} />
           </a>
         )}
@@ -42,6 +42,7 @@ export function CompetitionBanner() {
             EMBER2026 donation address: <code className="wrap">{donation}</code>
           </p>
         )}
+        {!donation && <p className="fine">CashTokens donation details are not configured yet.</p>}
         <p className="fine">
           {process.env.PREEXISTING_WORK_DISCLOSURE ||
             'Original application; open-source libraries disclosed in the repository.'}

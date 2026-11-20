@@ -44,9 +44,9 @@ export default async function Evidence() {
           <section className="evidence-empty">
             <h2>Mainnet proof awaits execution.</h2>
             <p>
-              No original-payment or refund transaction is published here yet. An owner must
-              configure production, connect funded wallets and authorize the real workflow before
-              any mainnet proof can be claimed.
+              No verified mainnet purchase and refund have been published here yet. Once a real
+              payment-to-refund journey is confirmed, this page can link both transactions and the
+              public-safe resolution receipt.
             </p>
             <a
               href="https://github.com/sopskistar/returntail/blob/main/docs/MAINNET_PROOF.md"
@@ -84,10 +84,9 @@ export default async function Evidence() {
         </p>
         <h2 id="submission">Competition submission status</h2>
         <p>
-          The owner still needs to supply the Widget Factory presentation URL and
-          CashTokens-compatible EMBER2026 donation address. Registration, workshop roll-call and
-          Telegram verification are not yet confirmed. Public deployment and a genuine mainnet
-          payment-to-refund proof remain release gates.
+          The public presentation is being prepared. The homepage lists the configured repository
+          and CashTokens donation details. A genuine mainnet payment-to-refund proof, registration,
+          workshop roll-call and Telegram verification still need evidence before submission.
         </p>
         <h2>The honest limits</h2>
         <p>

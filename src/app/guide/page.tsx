@@ -17,11 +17,20 @@ export default function Guide() {
           <br />
           to “here’s the proof.”
         </h1>
-        <p className="lead">One purchase. Two people. A clear path to making it right.</p>
+        <p className="lead">
+          Imagine a delivery with one damaged item. The customer wants a partial refund.
+          The merchant wants to make it right without paying twice.
+        </p>
         <div className="alert warning">
-          This is the real workflow guide. A mainnet demonstration requires owner-funded wallets and
-          explicit wallet signatures. No sample transaction is presented as proof.
+          Follow this journey with a real purchase and two separate wallets. Mainnet uses real BCH;
+          each transfer needs an explicit wallet signature. This guide contains no transaction proof.
         </div>
+        <p className="fine">
+          Before funding the journey, follow the{' '}
+          <a className="text-link" href="https://github.com/sopskistar/returntail/blob/main/docs/OWNER_CHECKLIST.md">
+            Paytaca and Selene wallet preflight
+          </a>. Check wallet versions and the merchant’s receiving address first.
+        </p>
         <ol className="guide-list">
           <li>
             <span className="guide-num">01</span>
@@ -29,8 +38,8 @@ export default function Guide() {
               <h2>The merchant creates a request.</h2>
               <p>
                 Create a merchant account, connect a WizardConnect-enabled BCH wallet, save its
-                public receive key, then create a payment request. Share the complete private
-                customer link.
+                public receive key, then create a payment request. Before sharing the private link,
+                match its receiving address and receive index in the merchant’s physical wallet.
               </p>
             </div>
           </li>
@@ -59,11 +68,12 @@ export default function Guide() {
           <li>
             <span className="guide-num">04</span>
             <div>
-              <h2>Something needs making right.</h2>
+              <h2>One item needs making right.</h2>
               <p>
-                The customer requests a full or partial refund and supplies their own receiving
-                address. The merchant reviews the reason, destination and remaining balance, then
-                approves or rejects.
+                After the payment confirms, the customer describes the damaged item and requests a
+                partial refund to their own receiving address. The merchant reviews the amount,
+                destination and remaining balance. Approval reserves the amount; it moves no BCH.
+                Further approvals above the remaining balance are rejected.
               </p>
             </div>
           </li>
@@ -72,7 +82,7 @@ export default function Guide() {
             <div>
               <h2>The merchant signs a new transaction.</h2>
               <p>
-                Approval reserves the amount. Review the refund intent, network fee, change and
+                Review the refund intent, network fee, change and
                 total debit, then explicitly authorize in the merchant wallet. The server checks the
                 signed transaction before broadcast.
               </p>
@@ -84,8 +94,8 @@ export default function Guide() {
               <h2>Both sides get a verifiable resolution.</h2>
               <p>
                 Track the refund through independent observation and block confirmation. Share a
-                public-safe resolution receipt. Further approvals above the remaining balance are
-                rejected by database-backed controls.
+                public-safe resolution receipt linking the original payment to the new refund,
+                without exposing the private customer link.
               </p>
             </div>
           </li>

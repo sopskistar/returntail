@@ -62,7 +62,7 @@ export default function Privacy() {
         <p>
           For account access or deletion requests, contact the merchant or project operator through
           the public repository’s issue channel. Do not include private receipt links, personal
-          financial information or secrets in public issues. Owner contact and a private support
+          financial information or secrets in public issues. Operator contact and a private support
           channel must be configured before general availability.
         </p>
         <p className="fine">

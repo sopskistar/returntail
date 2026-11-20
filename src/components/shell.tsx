@@ -13,8 +13,8 @@ export function Header({ app = false }: { app?: boolean }) {
           {app ? (
             <WalletButton />
           ) : (
-            <Link href="/workspace" className="button small">
-              Merchant workspace
+            <Link href="/workspace" className="button small" aria-label="Merchant workspace">
+              Workspace
               <ArrowUpRight size={16} />
             </Link>
           )}

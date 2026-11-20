@@ -1,5 +1,13 @@
 # Build status
 
+## Current verified capabilities — November 20, 2026
+
+The safety code milestone is `da3afbc`, deployed to Vercel as `returntail-4lcj1sqqv-sopskistars-projects.vercel.app` (`dpl_6E2gbzriiW7m7n3WkY459UUPQmCP`). Build logs confirm checksum/no-op migration at 08:37:30 UTC and deployment at 08:38:02 UTC. Expanded hosted smoke passed **19/19** at 08:46:50 UTC after separately retained transient fetch failures. Authenticated production reconciliation returned HTTP200 with zero entries and did not broadcast.
+
+The frontend follow-up preserves branding/architecture and gives `/guide` a hypothetical damaged-item story, puts physical-wallet preflight before the workflow, removes stale presentation/donation copy, and fixes auth-trail containment at 834px, narrow 320px navigation and measured control/text contrast. Typecheck/lint, 34 unit tests, optimized build and 12 browser tests pass; final browser run32.1s. The unchanged backend's 42 PostgreSQL integration tests pass. All fixture tests remain localhost-only. Final visual audit and deployed frontend SHA are recorded below after verification.
+
+Still unverified: installed Paytaca/Selene sessions and signatures, merchant address control through the physical-wallet preflight, actual customer payment, partial refund, real excess-approval rejection and confirmed public-safe receipt. No BCH transfer was automated. `WIDGET_FACTORY_URL` awaits the public Google Slides link. `PUBLIC_PROOF_REFUND_ID` remains absent until genuine, independently confirmed refund evidence exists. Registration/roll-call/Telegram and official video rules require participant confirmation.
+
 ## Payment and form safety — November 20, 2026
 
 New requests skip a bounded window of addresses with existing history; mainnet checks both providers. The existing audit trail records the freshness check atomically with allocation. Legacy requests without that record fail closed for review; no historical check is fabricated. Receive indices are displayed for physical-wallet matching. Source: `src/server/service.ts`, `chain.ts`, client types and order review.
@@ -59,4 +67,4 @@ Failure history is retained in SECURITY_TESTS.md and VISUAL_QA.md: font paths, W
 
 Files: `src/core/` BCH logic; `src/client/` and wallet provider; `src/server/`; API/routes `src/app/`; `migrations/`; `tests/`; original identity `public/brand/`; editable preview `video/`; manual gates `docs/OWNER_CHECKLIST.md`.
 
-Production deployment is **not verified**. There is **no ReturnTail mainnet payment/refund txid**. Mainnet funds were never spent automatically. Required human actions are consolidated in OWNER_CHECKLIST.md; the entry is not yet Mainnet Track ready.
+At the November 17 handoff, production deployment was **not verified**. There was **no ReturnTail mainnet payment/refund txid**. Mainnet funds were never spent automatically. Required human actions are consolidated in OWNER_CHECKLIST.md; the entry is not yet Mainnet Track ready.

@@ -254,3 +254,7 @@ A native modal dialog presents wallet connection, QR/deep-link actions, copy fee
 - **Don't** substitute emoji or text glyphs for interface icons or the brand mark.
 - **Don't** present local screenshots or instructional trails as deployed mainnet proof.
 - **Don't** substitute fallback lettering for the exact Rethink Sans wordmark or reduce action targets below 44px.
+
+## November 20 accessibility refinements
+
+Preserve the approved saffron/plum identity. Form boundaries use semantic `--color-control-rule` from primitive `--p-control-line` (#8b7a91) to exceed 3:1 against white and the pale form surface. Saffron authentication progress labels use ink for text contrast. At tablet widths the illustrative trail becomes a contained two-column sequence; narrow-phone navigation keeps Workspace on one line. Reading-page body measure is capped at 65ch; evidence lists retain real bullet markers. These are accessibility and containment refinements, not a new visual direction.
