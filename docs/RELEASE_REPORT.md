@@ -1,47 +1,67 @@
-# ReturnTail release report
+# Release verification — November 20, 2026
 
-November 17, 2026. Verified application/video source through `06b83de`; final documentation/handoff commit and clean/push state are recorded in the conversation and generated local `artifacts/RELEASE_MANIFEST.json`.
+ReturnTail continues the existing main branch and architecture. The production application is https://returntail.vercel.app. No mainnet payment or refund has been executed; physical wallets and funded settlement remain a manual verification gate.
 
-## A. Working features
+## Working on Vercel
 
-Secure merchant registration/login and revocable sessions; store/public-key setup; official WizardConnect pairing QR/cancellation and signing adapter; unique-address payment requests; private customer links; actual raw-transaction recipient/amount/network verification; full/partial refund requests; merchant approve/reject decisions; atomic refund accounting; explicit wallet transaction review/signing; signed-byte validation and durable broadcasts; reconciliation/identical-byte recovery; confirmation/reorg handling; safe receipts/audit events; responsive original identity and deployment/judging preparation.
+The original deployment built Next.js but was configured as Other and served only public assets, returning Vercel NOT_FOUND for application routes. Commit `9c1e00e` explicitly selected Next.js and a production build migration gate. Vercel logs prove Neon migration applied atomically at 07:17:32 UTC. The safety deployment at `da3afbc` subsequently verified the existing migration checksum and deployed at 08:38:02 UTC.
 
-Money-moving code uses genuine wallet/network interfaces. Funded-wallet execution is the manual gate; isolated fixtures do not establish it.
+Actual HTTPS checks exercised registration, password login, secure/HttpOnly/SameSite=Lax cookies, a persisted store profile change, reload, logout and denied workspace access. A genuine WizardConnect QR/URI was generated and cancelled with no physical-wallet response. One clearly labeled operational verification account/store remains; no orders, receiving keys, payments or refunds were seeded in production. The successful session was signed out; abandoned sessions expire under the seven-day policy.
 
-## B. Exact checks
+The protected Vercel runtime network check connected using TLS and validated BCH checkpoints plus primary/witness header agreement on mainnet at height 978134. That is infrastructure evidence, not an app transfer. Details are in [MAINNET_PROOF](MAINNET_PROOF.md).
 
-**75 tests pass: 28 core/unit, 36 genuine PostgreSQL integration, 11 browser.** Type generation/typecheck, lint and optimized production build pass. Final localhost smoke: 11/11; atomic migration and repeated checksum/no-op passed; secret scan passed; `npm audit` reported 0 vulnerabilities.
+## Executed verification
 
-Actual desktop/tablet/phone/landscape captures were inspected. Independent design review returned ship; named target/focus fixes were remeasured. Hallmark static: 0 FAIL / 0 REFLEX, 7 adjudicated WARN; Impeccable detector `[]`. Overlay/Puppeteer render tier were not executed. See VISUAL_QA.md for precise limits.
+| Check | Result |
+| --- | --- |
+| Type generation/typecheck | PASS |
+| ESLint | PASS |
+| Unit/cryptographic/provider-fixture tests | 35 passed |
+| PostgreSQL integration tests | 42 passed, isolated localhost schema only |
+| Optimized production build | PASS; actual Vercel builds and local Webpack artifact checked |
+| Localhost browser tests | 12 passed, including credential fallback, 320px navigation and 834px containment |
+| Hosted API/page/security smoke | 19/19 passed; final code check 2026-11-20T16:11:44.390Z (see BUILD_STATUS) |
+| Migration | Atomic application on Neon; later checksum/no-op in actual build log |
+| Secret scan | PASS, heuristic only |
+| npm dependency audit | 0 vulnerabilities reported |
+| Local Markdown links | No missing local targets |
 
-## C. Mainnet evidence
+Confirmed transaction/signing data in automated tests are isolated fixtures. Browser order allocation additionally checks real read-only Chipnet history for an unfunded test key. No automated production-money transfer or destructive production database test occurred. Initial hosted smoke had transient fetch failures; a separate retry passed 19/19. Initial browser resource failures were not accepted as visual QA; captures were repeated with styles/fonts loaded.
 
-**No ReturnTail mainnet payment/refund was executed. No owner funds were spent.** Live infrastructure verified an unrelated public transaction with merkle inclusion and agreement between bch.imaginary.cash and bch0.kister.net. Timestamp and identity are in MAINNET_PROOF.md. It is not app proof or Mainnet Track compliance.
+## Visual verification
 
-## D. Deployment
+Independent Impeccable design/browser assessments and actual Hallmark renders were completed. Final render:0 FAIL,2 documented/adjudicated REFLEX,4 WARN; its exit remains1. The CLI detector reports151 token advisories, not a clean zero. Tablet containment, narrow navigation and measured text/input contrast were refined. The overlay was blocked by intended CSP and is not claimed. Fifteen hosted page captures completed with no overflow or JavaScript page errors;12 browser ERR_NETWORK_CHANGED console events and an earlier failed navigation are retained as transport limitations. A separate HTTPS account/QR check completed with zero browser errors. See [VISUAL_QA](VISUAL_QA.md).
 
-No verified public deployment URL. Vercel/Neon configuration and smoke scripts are prepared. Optimized localhost:3001 was checked; this is not hosted verification.
+## Security fixes and limits
 
-## E. Security findings and mitigations
+- Previously used receiving addresses could expose historical matching payments to new orders. New allocation skips existing history at both mainnet providers, records freshness atomically under the store lock, and refuses legacy requests without a genuine check. Six additional PostgreSQL cases verify rollback, idempotency, concurrency and legacy rejection; witness-only history has a separate provider test.
+- Before hydration, a form could fall back to GET and put an unused diagnostic credential in a URL. That credential was discarded without registration. Auth forms now disable submission until hydration and use POST fallbacks; scriptless posts are rejected without URL credentials. Wallet buttons cannot submit a store form.
+- Health requires the migration record. API responses, including errors, are non-cacheable. An authenticated read-only network check verifies outbound runtime capability without signing/broadcasting. CSRF and unauthorized workspace/order/job access were checked on production.
+- Existing row locks, reservations, idempotency, unique transaction identities, saved signed bytes before broadcast and identical-byte recovery remain in place. Unknown outcomes keep reservations. These controls do not prevent extra merchant transfers outside ReturnTail.
+- This is provider-assisted BCH verification, not a fully validated proof-of-work node. General availability still needs independent security review, private support/retention/account-recovery policy and broader screen-reader testing.
 
-Scrypt, protected server sessions, origin checks, validation/body cap, persistent limits, HMAC capabilities, encrypted idempotency responses, SQL parameterization, locked/conditional reservations, unique output/input/settlement identities, VM/sighash/intent checks, TLS/checkpoints/merkle/witness verification and conservative unknown/reorg states are implemented.
+A final link check found the explorer root `/tx/` route returning404. The actual explicit `/mainnet/tx/` route returned200 and identified the previously verified unrelated public transaction. Receipt links now always include their network; a regression test covers mainnet/chipnet separation. This remains infrastructure/link verification, not an app transfer.
 
-Advisories from an unused generator were eliminated by removing it. WASM CSP was corrected without production arbitrary eval. Remaining risks: public-provider trust/availability, single-confirmation reorg risk, private links, xpub privacy, inline Next hydration CSP and no independent security review. No recovery/email-verification workflow, complete address discovery, token refunds, custody or AI endpoint is advertised.
+## Physical wallet gate
 
-## F. Incomplete verification
+Use the [exact preflight and transfer steps](OWNER_CHECKLIST.md) and [reviewed compatibility](WALLET_READINESS.md). Paytaca v0.27.3 and Selene 2026.10.02 have compatible released source implementations, but installed binary pairing, reconnection, refusal and signing remain unverified. Exclude Paytaca v0.26.1 because it broadcasts despite the sign-only flag.
 
-Physical Paytaca/Selene readiness/reconnect/refusal/signing; real payment/refund/confirmation; public deployment/hosted DB/cron; full screen-reader/zoom matrix; official DoraHacks eligibility/video duration; owner presentation and donation values. Final mainnet video needs actual wallet/chain footage.
+You can begin the unfunded device preflight. Before any funds move, compare the complete merchant receiving address and index with Paytaca's own address view. A connection/xpub is not ownership proof. Proceed to the authorized purchase and partial refund only after both wallets pass. Do not retry unknown transactions with new inputs. The checklist specifies how to demonstrate a genuine 4,000-sat approval and 7,000-sat excess rejection against an example 10,000-sat purchase without an extra transfer.
 
-## G–H. Owner actions and exact test
+## Evidence and submission
 
-Use OWNER_CHECKLIST.md for secure Neon/auth/URL/network/cron configuration, Vercel authorization, eligibility confirmation, Widget Factory/token address, two tiny funded wallets, and the exact eleven-step payment→4,000-sat partial refund→over-limit rejection journey. It covers receive-index limits, fees, unknown-broadcast recovery, restart persistence and public receipt inspection. Never send recovery phrases or secrets in chat.
+`PUBLIC_PROOF_REFUND_ID` remains unset. No ReturnTail payment txid, refund txid or confirmed settlement is claimed. After genuine wallet actions, independently verify both transactions, amounts/outputs, block evidence and safe receipt before updating the ledger or public proof setting.
 
-## I. Source history and status
+The CashTokens donation address is configured and format-validated. `WIDGET_FACTORY_URL` remains pending your publicly viewable Google Slides presentation. The guide/script lead with a hypothetical damaged-item problem, then the mechanism, then actual evidence; no fictional customers or transaction records were added. No separate presentation app or new video was built.
 
-`f970c0a`: foundation/research. `45748e2`: security/recovery/adversarial tests. `1db3218`: responsive app/identity/QA. `06b83de`: editable rendered preview. Closing documentation/push follow final scans; final SHA is in the handoff manifest/conversation. Origin is github.com/sopskistar/returntail. No unrelated owner configuration was committed.
+The supplied cutoff is November 22, 2026, 14:00 UTC; the official site confirms hacking ends then. DoraHacks detail/resources remain inaccessible to automated checks. Registration, roll-call, Telegram verification, exact submission/video rules and useful-mainnet proof must still be confirmed. No submission or announcement was published.
 
-## J. Competition readiness
+## Git milestones
 
-**Not yet ready to claim complete Mainnet Track compliance.** Local code/QA and presentation/script are ready for owner verification. Real app transactions, live site, eligibility and required owner links/address remain gates. No DoraHacks entry or announcement was published.
+- `9c1e00e` — fix: deploy Next.js routes and migrate production Neon safely
+- `5a67a44` — fix: verify hosted BCH readiness and harden API smoke checks
+- `da3afbc` — fix: prevent historical payment reuse and unsafe form submits
+- `a6382f3` — fix: clarify refund journey and improve responsive accessibility
+- `b86e36a` — fix: use verified network-specific BCH explorer links
 
-The playable engineering preview is 45 seconds, 1080p, 30 fps, H.264 and explicitly labels no funds/mainnet pending. It is a progress preview, not the final mainnet demo.
+Subsequent UI/report commits and the final deployed SHA are recorded in BUILD_STATUS and the final handoff. History is preserved without squash, rewrite or force push.

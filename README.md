@@ -4,7 +4,7 @@
 
 Non-custodial Bitcoin Cash purchase-to-refund resolution: unique-address payment requests, independent output verification, customer requests, atomic merchant approvals, genuine WizardConnect signing, durable broadcasts, and public-safe resolution receipts.
 
-The implementation and isolated tests are real. **No ReturnTail mainnet payment/refund or hosted deployment has been verified yet.** Physical wallet compatibility, funded transfers, credentials, deployment authorization and competition eligibility remain explicit owner gates. Read-only mainnet infrastructure has been checked against two providers; that is not an app transfer.
+The live application is [returntail.vercel.app](https://returntail.vercel.app). Neon migration, HTTPS authentication, profile persistence and the deployed runtime's connections to two BCH mainnet providers have been verified. **No ReturnTail mainnet payment or refund has been executed yet.** Physical-wallet signing and funded settlement remain explicit verification gates; infrastructure checks are not app transaction proof.
 
 ## Run locally
 
@@ -68,12 +68,12 @@ The optional mainnet probe validates an **unrelated public transaction**, merkle
 - Approval reserves the refund amount; signing and broadcast remain separate. Completed settlement requires independently observed block inclusion.
 - Timeouts retain signed bytes, txid and reservations. An explicit recovery action rechecks the network and can rebroadcast **identical bytes only**. Signed attempts are never replaced with fresh inputs.
 - Concurrent approvals, idempotency, unique output allocation, input reservations and a settlement ledger enforce the app-level refund limit. Extra merchant transfers outside the app remain possible.
-- No analytics, AI endpoints, custodial wallets, fiat conversions, password recovery or invented transaction proof.
+- Release limits: one store per account, standard P2PKH BCH only, no email verification or password recovery. Visitor analytics are disabled.
 
 ## Deployment and judging
 
-Vercel and Neon preparation, not an authorized deployment. Configure secrets securely, apply migrations and use the read-only hosted smoke script. Cron requires CRON_SECRET; the free Vercel schedule is daily, while open receipt pages also reconcile pending transactions periodically.
+The existing Vercel production project deploys from `main`. Its Next.js build configuration applies the checksum-verified Neon migration before building; preview builds skip automatic migrations. Cron requires CRON_SECRET; the free schedule is daily, while open receipt pages also reconcile pending transactions periodically. See [deployment operations](docs/DEPLOYMENT.md).
 
-Start with [OWNER_CHECKLIST](docs/OWNER_CHECKLIST.md) for the exact human test, [BUILD_STATUS](docs/BUILD_STATUS.md) for milestone evidence, [MAINNET_PROOF](docs/MAINNET_PROOF.md), [SECURITY_TESTS](docs/SECURITY_TESTS.md), [ARCHITECTURE](docs/ARCHITECTURE.md), and [SUBMISSION](docs/SUBMISSION.md). The homepage accepts owner-supplied Widget Factory and CashTokens donation settings; nothing was invented.
+Start with the [wallet and deployment checklist](docs/OWNER_CHECKLIST.md) and [reviewed wallet compatibility](docs/WALLET_READINESS.md). [Build status](docs/BUILD_STATUS.md), [mainnet proof](docs/MAINNET_PROOF.md), [security tests](docs/SECURITY_TESTS.md), [architecture](docs/ARCHITECTURE.md) and [submission status](docs/SUBMISSION.md) separate verified results from pending evidence. The CashTokens donation setting is configured. The Google Slides presentation URL is pending; `PUBLIC_PROOF_REFUND_ID` stays unset until a genuine refund is independently confirmed.
 
-Original branding lives in `public/brand`, `DESIGN.md` and `docs/BRAND_GUIDE.md`. [Third-party notices](THIRD_PARTY_NOTICES.md) include SDK and OFL font licenses. The separate `video/` package reuses the installed Hackathon Video Studio tools; its rendered engineering preview is clearly labeled, and the final mainnet demo script awaits genuine owner footage.
+Original branding lives in `public/brand`, `DESIGN.md` and `docs/BRAND_GUIDE.md`. [Third-party notices](THIRD_PARTY_NOTICES.md) include SDK and OFL font licenses. The separate `video/` package reuses the installed Hackathon Video Studio tools; its rendered engineering preview is clearly labeled, and the final mainnet demo script awaits genuine wallet footage.

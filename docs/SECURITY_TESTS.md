@@ -2,7 +2,7 @@
 
 Automated fixtures are isolated. They do not establish actual wallet compatibility, mainnet execution or hosted security. The BCH tests use real transaction serialization, signatures and Libauth VM validation. Integration tests run against PostgreSQL 17, not an in-memory database.
 
-Current executed totals: **28 core/unit + 36 PostgreSQL integration + 11 browser = 75 tests**. Final release report records the last check results and commit. Production-mode browser fixture tests are localhost-only; no automated funded transfer is permitted.
+Current executed totals: **35 core/unit + 42 PostgreSQL integration + 12 browser = 89 tests**. Final release report records the last check results and commit. Production-mode browser fixture tests are localhost-only; no automated funded transfer is permitted.
 
 | Required adversarial case        | Implemented assertion                                                                               |
 | -------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -48,6 +48,14 @@ Additional assertions: exact BCH VM signatures, mandatory 0x61 flags, all signed
 
 ## Manual gates
 
-Actual Paytaca/Selene handshake, network selection, reconnection, signature refusal, successful signing and complete mainnet transfer require owner devices and consent. Hosted Neon/Vercel, production cookie behavior at HTTPS, scheduler, confirmations, reorg/provider outage operations and full screen-reader coverage are not verified by local fixtures.
+Actual Paytaca/Selene handshake, network selection, reconnection, signature refusal, successful signing and complete mainnet transfer require physical devices and explicit consent. Hosted Neon/Vercel migration, HTTPS cookie behavior and runtime BCH connectivity were separately verified on November 20. They are not established by local fixtures. Real confirmations, reorg/provider-outage operations, scheduled cron execution and full screen-reader coverage remain distinct manual/operational gates.
 
 First browser attempts surfaced a WASM CSP error (fixed and retested), development cold-compile timing, and reused fixture xpub collisions (tests now derive per-run keys; store configuration returns an explicit registered-key error). An obsolete witness timed out; a maintained Electron Cash registry witness was tested instead. Failures are retained here rather than described as passes.
+
+## November 20 production follow-up
+
+- Production routing was corrected from static Other output to Next.js. The Vercel build log proves atomic Neon migration; health and real HTTPS authentication/profile persistence were then exercised. No fixture tests or seeded financial records touched production.
+- A pre-hydration form submission exposed an unused diagnostic credential in a GET query. It was discarded without registering that credential. Authentication now uses a POST fallback and disables submission until hydration; other forms use POST and wallet buttons cannot submit their parent form. The JavaScript-disabled browser regression asserts POST, no URL query and exact fail-closed CSRF/content-type error.
+- Previously used merchant wallet addresses could expose old matching-value payments to a new order. Allocation now checks both mainnet providers, skips any history and records freshness under the store lock. Missing checks/provider failure roll back; legacy requests cannot prepare or verify payment without a genuine allocation check. Historical markers are not backfilled. Six isolated PostgreSQL cases cover freshness, legacy rejection, rollback, idempotency and concurrent allocation; an additional provider fixture tests witness-only history.
+- Integration fixture connections now reject non-local hostnames even if a test URL is explicitly configured. Browser fixture tests remain restricted to localhost. Their confirmed transaction data and signing keys are isolated fixtures, never app mainnet evidence.
+- Physical Paytaca/Selene binary behavior, real signatures, unknown-outcome recovery on genuine transactions and funded settlement still require the documented manual gate. Source review excludes Paytaca v0.26.1 because it disregards sign-only broadcasting.

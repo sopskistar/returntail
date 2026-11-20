@@ -15,7 +15,7 @@ Target: independent online BCH merchants handling damaged goods, unavailable inv
 
 Business hypothesis (unvalidated): hosted per-store subscription for support/audit workflows; open-source self-hosting. No platform fee or token is implemented. Conduct merchant interviews before claiming willingness to pay. Incumbents can add refund tooling; integration with existing checkouts is a future distribution path, not implemented scope.
 
-Risks: public-indexer availability, wallet-version compatibility, chain confirmation delay, merchants refusing refunds, privacy of shared capabilities, owner eligibility, and limited time for independent security review. Application accounting cannot prevent a merchant sending extra BCH outside ReturnTail.
+Risks: public-indexer availability, wallet-version compatibility, chain confirmation delay, merchants refusing refunds, privacy of shared capabilities, maintainer eligibility, and limited time for independent security review. Application accounting cannot prevent a merchant sending extra BCH outside ReturnTail.
 
 ## Design references
 

@@ -1,6 +1,6 @@
 # Submission preparation
 
-**Not ready to claim complete Mainnet Track compliance yet.** Application source and local tests can be reviewed; funded owner execution, public deployment and eligibility remain gates.
+**Not ready to claim complete Mainnet Track compliance yet.** Public source and the live Vercel application can be reviewed. Neon, HTTPS authentication and runtime BCH connectivity are verified; funded physical-wallet execution and participant eligibility remain gates.
 
 Title: ReturnTail — merchant-controlled BCH refund resolution.
 
@@ -14,13 +14,13 @@ Why BCH: low-fee direct payments allow small, useful merchant refunds without cu
 
 Implementation: Next.js, TypeScript, React, PostgreSQL, official WizardConnect, Libauth, TLS Fulcrum. No backend spending keys. Open-source libraries disclosed in THIRD_PARTY_NOTICES.md; original app starts from the initial repository README/license.
 
-Owner completion checklist:
+Submission checklist:
 
 - Confirm registration/workshop/Telegram eligibility and official deadline directly.
 - Check current official video-duration requirements (DoraHacks automated access blocked).
-- Configure Neon and authorize Vercel; verify public HTTPS app and all endpoints.
+- Recheck the HTTPS app after the final deployment; inspect the actual production commit.
 - Complete actual Paytaca signing, payment, partial refund, receipt and duplicate-rejection journey.
-- Publish Widget Factory presentation and supply homepage link + token-compatible donation address.
+- Publish the Google Slides presentation and set `WIDGET_FACTORY_URL`. The token-compatible donation address is already configured.
 - Populate mainnet proof ledger from real transactions and include public-safe receipt.
 - Record and verify final mainnet demo footage; the engineering preview is not a substitute.
 - Revalidate source is public and final commit is pushed.

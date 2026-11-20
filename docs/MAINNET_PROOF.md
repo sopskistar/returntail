@@ -1,8 +1,10 @@
 # Mainnet proof ledger
 
-**No owner-authorized mainnet payment or refund has been executed in this build session.** No txid is invented. A useful production transfer, funded-wallet compatibility, live HTTPS deployment and final judge proof remain pending.
+**No ReturnTail mainnet payment or refund has been executed.** Production is live and infrastructure checks below are genuine; funded wallet execution and final transaction evidence remain pending. `PUBLIC_PROOF_REFUND_ID` remains unset.
 
 ## Verified read-only infrastructure
+
+- November 20, 2026, 07:41:15 UTC: the authenticated Vercel runtime check verified TLS, mainnet fork checkpoints and matching block headers through bch.imaginary.cash and bch0.kister.net. Height 978134, block `000000000000000000e14ed5753390ed0c7e8f42d46c95ee729923f155af0c82`. **No transfer or wallet response.** Source milestone `5a67a44`; public app https://returntail.vercel.app.
 
 - November 17, 2026, 12:41:04 UTC: Chipnet TLS provider chipnet.imaginary.cash; fork checkpoint at 115252 validated; observed tip 335328. No transfer.
 - November 17, 2026, 13:03:52 UTC: mainnet TLS provider bch.imaginary.cash; BCH checkpoint at 661648 validated; observed tip 977752. No transfer.
@@ -18,13 +20,13 @@ On November 17 at 13:33:33 UTC, the actual verification path retrieved **an unre
 - Block: 977747, `000000000000000000604c1b8801ab7f0ecdb18a2baf4ef5c4b57ab35e07bcbd`.
 - Observed confirmations: 7 at that timestamp; merkle inclusion verified and witness agreed.
 
-**This is not a ReturnTail purchase/refund, owner transfer, or Mainnet Track transaction.** It verifies infrastructure behavior only. Machine-readable summary is in `artifacts/evidence/mainnet-external-probe.json`. The initial historical witness endpoint timed out; replacement was chosen from [Electron Cash's maintained registry](https://github.com/Electron-Cash/Electron-Cash/blob/master/electroncash/servers.json) and tested. Provider availability is an operational dependency.
+**This is not a ReturnTail purchase/refund, maintainer transfer, or Mainnet Track transaction.** It verifies infrastructure behavior only. Machine-readable summary is in `artifacts/evidence/mainnet-external-probe.json`. The initial historical witness endpoint timed out; replacement was chosen from [Electron Cash's maintained registry](https://github.com/Electron-Cash/Electron-Cash/blob/master/electroncash/servers.json) and tested. Provider availability is an operational dependency.
 
-## Owner execution record (fill only from genuine evidence)
+## Funded workflow record (fill only from genuine evidence)
 
 | Field                         | Value                                                             |
 | ----------------------------- | ----------------------------------------------------------------- |
-| Public HTTPS deployment       | Pending                                                           |
+| Public HTTPS deployment       | https://returntail.vercel.app — HTTPS/runtime verified November 20 |
 | App commit                    | Pending final test                                                |
 | Network                       | Mainnet required                                                  |
 | Merchant wallet/version       | Pending                                                           |
@@ -37,7 +39,7 @@ On November 17 at 13:33:33 UTC, the actual verification path retrieved **an unre
 | Refund block/confirmations    | Pending                                                           |
 | Primary/witness provider      | Pending observed execution                                        |
 | Public-safe receipt URL       | Pending                                                           |
-| Duplicate rejection evidence  | Pending owner journey; database fixture tests separately verified |
+| Duplicate rejection evidence  | Pending funded journey; isolated database tests are separate evidence |
 
 Explorer: use the actual network-specific link on the purchase and resolution receipt. A valid-looking hash is not evidence. Confirm byte-derived identity, recipient output, amount, merkle inclusion and witness agreement.
 

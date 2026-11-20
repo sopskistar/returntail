@@ -20,4 +20,4 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Automated blockchain data must be isolated fixtures; never automate production-money transfers.
 - Public receipts must omit private capabilities, personal reasons and account information.
 - Run typecheck, lint, unit tests, PostgreSQL integration tests, production build, localhost browser tests, dependency audit and secret scan before release.
-- Real wallets, credentials, deployment, mainnet signatures and competition submission require the owner's actions. Do not claim them verified from local tests.
+- Real wallets, credentials, deployment, mainnet signatures and competition submission require explicit human actions. Do not claim them verified from local tests.

@@ -10,4 +10,4 @@ Output: `artifacts/video/ReturnTail-preview.mp4` (local artifact, not automatica
 - Source is in `video/src/`; exact package dependencies are declared in `video/package.json`; original/OFL assets documented in video/README.md and brand notices.
 - Silent by design; no unlicensed music, fabricated voice or paid API. Full narration and mainnet recording plan are in VIDEO_SCRIPT.md.
 
-The preview explicitly says local application/no funds/mainnet proof pending. Product images are genuine Playwright captures of isolated QA accounts. The state diagram is an explanation, not a staged wallet interaction. **This is not a final hackathon mainnet demonstration.** It must be replaced/extended with genuine owner wallet and chain footage after rules and duration are confirmed.
+The preview explicitly says local application/no funds/mainnet proof pending. Product images are genuine Playwright captures of isolated QA accounts. The state diagram is an explanation, not a staged wallet interaction. **This is not a final hackathon mainnet demonstration.** It must be replaced/extended with genuine physical wallet and chain footage after rules and duration are confirmed.
