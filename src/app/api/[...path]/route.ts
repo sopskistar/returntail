@@ -6,6 +6,7 @@ import { assertOrigin, ipBucket, rateLimit } from '@/server/security';
 import { pool } from '@/server/db';
 import { authenticate, logout, merchant, requireMerchant } from '@/server/auth';
 import { network } from '@/server/config';
+import { checkNetwork } from '@/server/chain';
 import * as service from '@/server/service';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -67,8 +68,10 @@ async function dispatch(req: Request, ctx: Context) {
   if (method === 'GET' && root === 'health') {
     let database = false;
     try {
-      await pool().query('SELECT 1 FROM schema_migrations LIMIT 1');
-      database = true;
+      const migration = await pool().query(
+        "SELECT 1 FROM schema_migrations WHERE name='0001_returntail'",
+      );
+      database = migration.rowCount === 1;
     } catch {
       /* only disclose readiness */
     }
@@ -79,7 +82,7 @@ async function dispatch(req: Request, ctx: Context) {
       configured: database && !!process.env.AUTH_SECRET && process.env.AUTH_SECRET.length >= 32,
     };
   }
-  if (method === 'GET' && root === 'jobs' && id === 'reconcile') {
+  if (method === 'GET' && root === 'jobs' && ['reconcile', 'network'].includes(id)) {
     const secret = process.env.CRON_SECRET,
       authorization = req.headers.get('authorization') ?? '';
     invariant(
@@ -96,7 +99,7 @@ async function dispatch(req: Request, ctx: Context) {
       'Job authentication required.',
       401,
     );
-    return service.reconcileAll();
+    return id === 'network' ? checkNetwork(network()) : service.reconcileAll();
   }
   if (method === 'POST') assertOrigin(req);
   await rateLimit(pool(), `api:${ipBucket(req)}`, 120);
@@ -225,12 +228,15 @@ async function handler(req: Request, ctx: Context) {
     if (e instanceof z.ZodError)
       return NextResponse.json(
         { error: 'INVALID_INPUT', message: e.issues[0]?.message ?? 'Check your input.' },
-        { status: 400 },
+        { status: 400, headers: { 'Cache-Control': 'no-store' } },
       );
     if (e instanceof AppError)
       return NextResponse.json(
         { error: e.code, message: e.message },
-        { status: e.status, headers: e.status === 429 ? { 'Retry-After': '60' } : {} },
+        {
+          status: e.status,
+          headers: { 'Cache-Control': 'no-store', ...(e.status === 429 ? { 'Retry-After': '60' } : {}) },
+        },
       );
     // Do not send SQL, connection strings, wallet session material, or raw tx errors to clients.
     const code = typeof e === 'object' && e !== null && 'code' in e ? String(e.code) : 'unknown';
@@ -246,7 +252,7 @@ async function handler(req: Request, ctx: Context) {
         message:
           'This action could not be completed. Your saved transaction attempts are retained. Check service configuration and retry.',
       },
-      { status: 503 },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } },
     );
   }
 }

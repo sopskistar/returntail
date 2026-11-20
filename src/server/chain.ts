@@ -203,6 +203,46 @@ export function verifyMerkle(
   }
   return pos === 0 && hash.equals(Buffer.from(header, 'hex').subarray(36, 68));
 }
+// Authenticated operational check: no address queries, signing or broadcasting.
+// Uses the exact TLS/checkpoint path used by payment verification in this runtime.
+export async function checkNetwork(n: Network) {
+  const primary = await withClient(n, async (c) => ({
+    provider: c.host,
+    tip: await c.request<{ height: number; hex: string }>('blockchain.headers.subscribe'),
+  }));
+  invariant(
+    Number.isSafeInteger(primary.tip.height) && primary.tip.height >= checkpoints[n].height &&
+      /^[a-f0-9]{160}$/i.test(primary.tip.hex),
+    'STALE_PROVIDER',
+    'BCH provider returned an invalid block height.',
+    503,
+  );
+  const p = providers(n);
+  let witness: string | null = null;
+  if (p.witness) {
+    invariant(p.host !== p.witness, 'INVALID_WITNESS', 'Use different BCH providers.', 503);
+    witness = await withClient(n, async (c) => {
+      const header = await c.request<string>('blockchain.block.header', [primary.tip.height]);
+      invariant(
+        header === primary.tip.hex,
+        'PROVIDER_DISAGREEMENT',
+        'Independent BCH providers disagree; readiness is not established.',
+        503,
+      );
+      return c.host;
+    }, true);
+  }
+  return {
+    network: n,
+    provider: primary.provider,
+    witness,
+    checkpointVerified: true,
+    height: primary.tip.height,
+    blockHash: headerHash(primary.tip.hex),
+    checkedAt: new Date().toISOString(),
+    transfersPerformed: false,
+  };
+}
 export const chain: Chain = {
   async history(address, n) {
     return withClient(n, async (c) =>
