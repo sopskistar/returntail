@@ -8,6 +8,7 @@ import {
   validateSigned,
   verifyPayment,
   buildPlan,
+  explorer,
 } from '../src/core/bch';
 import { bch, sats, remaining } from '../src/core/money';
 import { walletError } from '../src/core/errors';
@@ -17,6 +18,11 @@ import { verifyMerkle } from '../src/server/chain';
 import { RelayMsgAction } from '@wizardconnect/core';
 import { xpub, address, destination, fixturePlan, signFixture, purchaseFixture } from './fixtures';
 describe('real BCH byte parsing and authorization (isolated fixtures)', () => {
+  it('links receipts to the explicit explorer network rather than the removed root tx route', () => {
+    const id = 'ab'.repeat(32);
+    expect(new URL(explorer('mainnet', id)).pathname).toBe(`/mainnet/tx/${id}`);
+    expect(new URL(explorer('chipnet', id)).pathname).toBe(`/chipnet/tx/${id}`);
+  });
   it('validates actual P2PKH signatures with 0x61 using the BCH VM', () => {
     const p = fixturePlan(),
       raw = signFixture(p);

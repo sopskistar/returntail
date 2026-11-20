@@ -249,5 +249,5 @@ export function walletRequest(plan: Plan) {
   };
 }
 export function explorer(network: Network, id: string): string {
-  return `https://blockexplorer.cash/${network === 'mainnet' ? '' : 'chipnet/'}tx/${id}`;
+  return `https://blockexplorer.cash/${network}/tx/${id}`;
 }

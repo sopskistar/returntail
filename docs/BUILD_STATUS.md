@@ -68,3 +68,11 @@ Failure history is retained in SECURITY_TESTS.md and VISUAL_QA.md: font paths, W
 Files: `src/core/` BCH logic; `src/client/` and wallet provider; `src/server/`; API/routes `src/app/`; `migrations/`; `tests/`; original identity `public/brand/`; editable preview `video/`; manual gates `docs/OWNER_CHECKLIST.md`.
 
 At the November 17 handoff, production deployment was **not verified**. There was **no ReturnTail mainnet payment/refund txid**. Mainnet funds were never spent automatically. Required human actions are consolidated in OWNER_CHECKLIST.md; the entry is not yet Mainnet Track ready.
+
+## Final frontend review
+
+`a6382f3` — fix: clarify refund journey and improve responsive accessibility. Typecheck/lint/build,34 unit tests and12 browser tests pass (last full browser run32.1s); unchanged backend integration tests42/42. Actual Hallmark final-v2 render:0 FAIL,2 documented/adjudicated REFLEX,4 WARN; Impeccable151 nonblocking token advisories. Independent screenshots and keyboard checks were executed; the overlay was blocked by intentional CSP and is not claimed. Details: VISUAL_QA.md.
+
+## Explorer-route correction
+
+A real HTTP check found the old mainnet root `/tx/` URL returned404. The explorer's own network directory identifies explicit network paths; `/mainnet/tx/f19727e987b0f1d3c2caf62ea5ff340af1ec0c128674d5779f965cc223d9ea53` returned200 with the correct transaction title. It is the unrelated public transaction already labeled in MAINNET_PROOF, not an app payment. `src/core/bch.ts` now includes the explicit network for both mainnet and Chipnet receipt links. Added a network-route regression in tests/core.test.ts. Typecheck/lint and35 unit tests pass; optimized build passed. Total automated coverage is now89 tests when combined with the unchanged42 PostgreSQL and12 browser checks.
