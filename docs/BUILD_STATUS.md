@@ -1,5 +1,11 @@
 # Build status — November 17, 2026
 
+## Production repair — November 20, 2026
+
+Baseline `3c5c493` matches remote main and the existing Vercel production deployment `dpl_DsqchYsHFMjXoNEnQwsBdnJNh2ZS`. That deployment built successfully but used framework Other, producing Vercel NOT_FOUND at `/api/health`. Environment key inventory confirms Neon configuration, authentication, canonical URL, network, cron and donation settings are present; secret values have not been printed. `WIDGET_FACTORY_URL` and `PUBLIC_PROOF_REFUND_ID` remain absent.
+
+Deployment configuration now explicitly selects Next.js and applies the checksum-verified migration during production builds. No application architecture change. Verified before this milestone: typecheck, lint, 28 unit tests, 36 isolated localhost PostgreSQL tests, local migration checksum/no-op, optimized build and secret scan. npm audit reports zero vulnerabilities. A generated Webpack cache failure was resolved by moving the cache aside and completing a clean build. Hosted runtime, migration and physical wallets remain pending until checked after deployment. No production fixture tests or BCH transfers executed.
+
 Implementation source checked through `06b83de`; final handoff/documentation commit is recorded in the release manifest/conversation. Baseline `b6f2fe5`. No milestone below claims a funded wallet result from a fixture.
 
 | Gate                                       | Implemented and actually checked                                                                                                                                                                                 | Commit(s)                               | Outstanding owner / external gate                                                                 |
