@@ -5,6 +5,7 @@ export type OrderSummary = {
   reference: string;
   network: Network;
   address: string;
+  addressIndex: number;
   amount: number;
   reserved: number;
   settled: number;

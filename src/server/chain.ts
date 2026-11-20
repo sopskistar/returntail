@@ -245,13 +245,19 @@ export async function checkNetwork(n: Network) {
 }
 export const chain: Chain = {
   async history(address, n) {
-    return withClient(n, async (c) =>
+    const p = providers(n);
+    invariant(!p.witness || p.host !== p.witness, 'INVALID_WITNESS', 'Use different BCH providers.', 503);
+    const read = (witness = false) => withClient(n, async (c) =>
       (
         await c.request<{ tx_hash: string }[]>('blockchain.scripthash.get_history', [
           scriptHash(address, n),
         ])
       ).map((t) => t.tx_hash),
-    );
+      witness);
+    // The union fails closed for address freshness: history visible at either
+    // independent mainnet provider makes an address ineligible for a new order.
+    const results = await Promise.all(p.witness ? [read(), read(true)] : [read()]);
+    return [...new Set(results.flat())];
   },
   async utxos(address, n, path, index) {
     return withClient(n, async (c) => {

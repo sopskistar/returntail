@@ -1,6 +1,7 @@
 // Isolated provider fixtures. These do not contact or fund any blockchain.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { checkNetwork, Fulcrum } from '../src/server/chain';
+import { checkNetwork, Fulcrum, chain } from '../src/server/chain';
+import { address } from './fixtures';
 
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); });
 function providers(mode: 'ok' | 'disagree' | 'wrong-chain' | 'stale' = 'ok') {
@@ -50,5 +51,15 @@ describe('authenticated runtime network readiness logic', () => {
     providers();
     vi.stubEnv('BCH_WITNESS_HOST', 'fixture-primary.invalid');
     await expect(checkNetwork('mainnet')).rejects.toThrow('different BCH providers');
+    await expect(chain.history(address, 'chipnet')).rejects.toThrow('different BCH providers');
+  });
+  it('includes history visible only to the witness when checking address freshness', async () => {
+    const p = providers();
+    p.request.mockImplementation(async function(this: Fulcrum, method) {
+      if (method !== 'blockchain.scripthash.get_history') throw new Error('Unexpected fixture call');
+      return this.host === 'fixture-primary.invalid' ? [] : [{ tx_hash: 'ab'.repeat(32) }];
+    });
+    expect(await chain.history(address, 'chipnet')).toEqual(['ab'.repeat(32)]);
+    expect(p.close).toHaveBeenCalledTimes(2);
   });
 });

@@ -1,10 +1,12 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
+import { useState, useSyncExternalStore, type FormEvent } from 'react';
 import { ArrowUpRight, CircleAlert } from 'lucide-react';
 import { api, message } from '@/client/api';
+const subscribe = () => () => {};
 export function AuthForm({ register }: { register: boolean }) {
+  const ready = useSyncExternalStore(subscribe, () => true, () => false);
   const router = useRouter(),
     [busy, setBusy] = useState(false),
     [error, setError] = useState('');
@@ -41,7 +43,7 @@ export function AuthForm({ register }: { register: boolean }) {
           <span>{error}</span>
         </div>
       )}
-      <form onSubmit={submit}>
+      <form method="post" action={`/api/auth/${register ? 'register' : 'login'}`} onSubmit={submit}>
         {register && (
           <div className="field">
             <label htmlFor="storeName">Store name</label>
@@ -82,11 +84,12 @@ export function AuthForm({ register }: { register: boolean }) {
           />
           <small>Use a unique password. Password managers and paste are supported.</small>
         </div>
-        <button className="button" disabled={busy} aria-busy={busy}>
+        <button className="button" disabled={busy || !ready} aria-busy={busy || !ready}>
           {busy ? 'Working…' : register ? 'Create merchant account' : 'Sign in'}
           <ArrowUpRight size={17} />
         </button>
       </form>
+      {!ready && <p className="fine" role="status">Loading secure sign-in. JavaScript must be enabled.</p>}
       <div className="auth-switch">
         {register ? 'Already have an account?' : 'New to ReturnTail?'}{' '}
         <Link href={register ? '/login' : '/register'}>

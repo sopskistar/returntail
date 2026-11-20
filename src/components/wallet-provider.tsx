@@ -77,8 +77,8 @@ export function WalletProvider({ network, children }: { network: Network; childr
           </button>
         </div>
         <p>
-          Scan with a WizardConnect-enabled wallet. Use Paytaca, or Selene if your installed version
-          supports it.
+          Scan with a WizardConnect-enabled wallet. Paytaca 0.27.3 is the reviewed merchant release;
+          check your installed version before transferring funds.
         </p>
         <div className="qr-frame">
           {wc.qrUri && <AlphanumericQRCode value={wc.qrUri} size={240} />}
@@ -125,6 +125,7 @@ export function WalletButton() {
   const { wc } = useWallet();
   return (
     <button
+      type="button"
       className="button secondary wallet-button"
       onClick={() => (wc.state === 'connected' ? void wc.disconnect() : wc.connect())}
       disabled={wc.state === 'connecting' || wc.state === 'reconnecting'}

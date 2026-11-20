@@ -76,6 +76,14 @@ async function storeFor(db: Sql, merchantId: string, lock = false): Promise<Stor
   );
   return r.rows[0];
 }
+async function requireFreshAllocation(id: string) {
+  const checked = await pool().query(
+    "SELECT 1 FROM audit_events WHERE order_id=$1 AND action='order.created' AND detail->>'receivingHistoryChecked'='true' LIMIT 1",
+    [id],
+  );
+  invariant(checked.rows.length, 'RECEIVE_REVIEW_REQUIRED',
+    'This request predates receiving-address checks. Ask the merchant for a new payment request before paying. Any existing transfer needs manual review.', 409);
+}
 function viewOrder(o: Order) {
   return {
     id: o.id,
@@ -83,6 +91,7 @@ function viewOrder(o: Order) {
     reference: o.reference,
     network: o.network,
     address: o.address,
+    addressIndex: o.address_index,
     amount: Number(o.amount),
     reserved: Number(o.reserved),
     settled: Number(o.settled),
@@ -176,6 +185,7 @@ export async function createOrder(
   merchantId: string,
   input: { title: string; amount: number },
   key: string,
+  provider: Chain = chain,
 ) {
   return transaction(async (db) =>
     idempotent(db, `order:${merchantId}`, key, input, async () => {
@@ -189,16 +199,30 @@ export async function createOrder(
       const amount = sats(input.amount),
         id = randomUUID(),
         cap = token(),
-        index = s.address_index;
+        firstIndex = s.address_index;
       invariant(
-        index < 10000,
+        firstIndex < 10000,
         'ADDRESS_LIMIT',
-        'This release supports 10,000 store orders; contact the operator before creating more.',
+        'This release supports receive indices below 10,000; contact support before creating more requests.',
         409,
       );
-      const address = deriveAddress(s.receive_xpub, index, s.network),
+      // A chain-level xpub may belong to an already-used wallet. Never allocate
+      // an address with old payment history to a new purchase. The store lock
+      // serializes allocation; bounded parallel reads avoid unbounded discovery.
+      const candidates = Array.from({ length: Math.min(5, 10000 - firstIndex) }, (_, offset) => ({
+        index: firstIndex + offset,
+        address: deriveAddress(s.receive_xpub!, firstIndex + offset, s.network),
+      }));
+      const checked = await Promise.all(candidates.map(async (candidate) => ({
+        ...candidate,
+        used: (await provider.history(candidate.address, s.network)).length > 0,
+      })));
+      const fresh = checked.find(candidate => !candidate.used);
+      invariant(fresh, 'RECEIVE_RANGE_USED',
+        'The next five receive addresses already have history. Use a fresh merchant wallet for a new store or contact support to advance the receive range.', 409);
+      const { address, index } = fresh,
         reference = `RT-${id.slice(0, 8).toUpperCase()}`;
-      await db.query('UPDATE stores SET address_index=address_index+1 WHERE id=$1', [s.id]);
+      await db.query('UPDATE stores SET address_index=$2 WHERE id=$1', [s.id, index + 1]);
       await db.query(
         'INSERT INTO wallet_addresses(id,store_id,network,address,address_index) VALUES($1,$2,$3,$4,$5)',
         [randomUUID(), s.id, s.network, address, index],
@@ -207,7 +231,9 @@ export async function createOrder(
         "INSERT INTO orders(id,store_id,capability_hash,title,reference,network,address,address_index,amount,expires_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,now()+interval '24 hours')",
         [id, s.id, capabilityHash(cap), input.title, reference, s.network, address, index, amount],
       );
-      await audit(db, s.id, id, 'order.created', merchantId, { amount, reference });
+      await audit(db, s.id, id, 'order.created', merchantId, {
+        amount, reference, receivingHistoryChecked: true, receiveIndex: index,
+      });
       return { id, capability: cap, reference };
     }),
   );
@@ -250,6 +276,7 @@ export async function verifyPurchase(
   provider: Chain = chain,
 ) {
   const original = await orderFor(pool(), id, actor);
+  await requireFreshAllocation(original.id);
   const old = await pool().query('SELECT txid FROM payments WHERE order_id=$1', [id]);
   const ids = providedTxid
     ? [providedTxid]
@@ -477,6 +504,7 @@ export async function prepareAttempt(
     403,
   );
   const purpose = refundId ? 'refund' : 'payment';
+  if (!refundId) await requireFreshAllocation(id);
   if (refundId) {
     const s = await storeFor(pool(), 'merchantId' in actor ? actor.merchantId : '');
     invariant(

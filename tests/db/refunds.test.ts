@@ -1,5 +1,5 @@
 // Genuine PostgreSQL integration tests in a dedicated schema. Chain data is explicitly isolated fixture data.
-import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { beforeAll, afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Pool } from 'pg';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
@@ -23,10 +23,9 @@ const local = 'postgresql://returntail:returntail-local-test-only@127.0.0.1:5543
 beforeAll(async () => {
   const url = process.env.RETURNTAIL_TEST_DATABASE_URL ?? local;
   if (
-    !['localhost', '127.0.0.1'].includes(new URL(url).hostname) &&
-    !process.env.RETURNTAIL_TEST_DATABASE_URL
+    !['localhost', '127.0.0.1'].includes(new URL(url).hostname)
   )
-    throw Error('Use an explicitly configured isolated test database.');
+    throw Error('Integration fixtures are restricted to an isolated localhost database.');
   admin = new Pool({ connectionString: url });
   await admin.query(`CREATE SCHEMA IF NOT EXISTS ${schema}`);
   const c = await admin.connect();
@@ -65,6 +64,9 @@ beforeEach(async () => {
     "INSERT INTO orders(id,store_id,capability_hash,title,reference,network,address,address_index,amount,expires_at) VALUES($1,$2,$3,'Fixture purchase','RT-TEST','chipnet',$4,0,10000,now()+interval '1 hour')",
     [orderId, storeId, capabilityHash(cap), address],
   );
+  await service.audit(pool(), storeId, orderId, 'order.created', 'ISOLATED_FIXTURE', {
+    receivingHistoryChecked: true,
+  });
 });
 afterAll(async () => {
   await pool().end();
@@ -367,7 +369,7 @@ describe('refund accounting, concurrency and idempotency', () => {
     ).rejects.toThrow('forced rollback');
     expect(await balance()).toMatchObject({ reserved: '0' });
     expect((await pool().query('SELECT * FROM idempotency')).rows).toHaveLength(0);
-    expect((await pool().query('SELECT * FROM audit_events')).rows).toHaveLength(0);
+    expect((await pool().query("SELECT * FROM audit_events WHERE action='fixture.changed'")).rows).toHaveLength(0);
   });
   it('uses database constraints as a second line of defense', async () => {
     await expect(
@@ -567,5 +569,58 @@ describe('durable transaction settlement state machine', () => {
     await expect(
       service.requestRefund(orderId, 'invalid'.padEnd(48, 'x'), input, k),
     ).rejects.toThrow();
+  });
+});
+
+describe('new order address freshness (isolated provider history)', () => {
+  const input = { title: 'Isolated address allocation fixture', amount: 10000 };
+  it('refuses legacy requests without a freshness record even with a valid-looking payment', async () => {
+    await pool().query('DELETE FROM audit_events WHERE order_id=$1', [orderId]);
+    await expect(service.verifyPurchase(orderId, { capability: cap }, undefined, fixtureChain()))
+      .rejects.toThrow('predates receiving-address checks');
+    expect((await pool().query('SELECT count(*) FROM payments')).rows[0].count).toBe('0');
+  });
+  it('skips an address with old history and exposes the allocated receive index', async () => {
+    const p = fixtureChain();
+    p.history = async a => a === deriveAddress(xpub, 1, 'chipnet') ? ['ab'.repeat(32)] : [];
+    const result = await service.createOrder(merchantId, input, randomUUID(), p);
+    const order = await service.orderDetail(result.id, { merchantId });
+    expect(order.addressIndex).toBe(2);
+    expect(order.address).toBe(deriveAddress(xpub, 2, 'chipnet'));
+    expect((await pool().query('SELECT address_index FROM stores WHERE id=$1', [storeId])).rows[0].address_index).toBe(3);
+  });
+  it('refuses an exhausted receive range without advancing the counter or creating an order', async () => {
+    const p = fixtureChain();
+    p.history = async () => ['ab'.repeat(32)];
+    await expect(service.createOrder(merchantId, input, randomUUID(), p)).rejects.toThrow('already have history');
+    expect((await pool().query('SELECT address_index FROM stores WHERE id=$1', [storeId])).rows[0].address_index).toBe(1);
+    expect((await pool().query('SELECT count(*) FROM orders')).rows[0].count).toBe('1');
+  });
+  it('fails closed and rolls back when freshness cannot be checked', async () => {
+    const p = fixtureChain();
+    p.history = async () => { throw new Error('ISOLATED provider unavailable'); };
+    await expect(service.createOrder(merchantId, input, randomUUID(), p)).rejects.toThrow('unavailable');
+    expect((await pool().query('SELECT count(*) FROM orders')).rows[0].count).toBe('1');
+    expect((await pool().query('SELECT address_index FROM stores WHERE id=$1', [storeId])).rows[0].address_index).toBe(1);
+  });
+  it('returns the same capability on an idempotent retry without allocating or querying again', async () => {
+    const p = fixtureChain();
+    p.history = vi.fn(async () => []);
+    const key = randomUUID();
+    const first = await service.createOrder(merchantId, input, key, p);
+    expect(await service.createOrder(merchantId, input, key, p)).toEqual(first);
+    expect(p.history).toHaveBeenCalledTimes(5);
+    expect((await pool().query('SELECT count(*) FROM orders')).rows[0].count).toBe('2');
+  });
+  it('serializes concurrent allocations to distinct fresh addresses', async () => {
+    const p = fixtureChain();
+    p.history = async () => [];
+    const results = await Promise.all([
+      service.createOrder(merchantId, input, randomUUID(), p),
+      service.createOrder(merchantId, input, randomUUID(), p),
+    ]);
+    const orders = await Promise.all(results.map(r => service.orderDetail(r.id, { merchantId })));
+    expect(new Set(orders.map(o => o.address)).size).toBe(2);
+    expect(orders.map(o => o.addressIndex).sort()).toEqual([1, 2]);
   });
 });

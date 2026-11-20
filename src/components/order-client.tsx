@@ -195,6 +195,8 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
   const paymentAttempt = order.attempts.find(
     (a) => a.kind === 'payment' && a.state !== 'cancelled',
   );
+  const receivingChecked = order.events.some(event =>
+    event.action === 'order.created' && event.detail.receivingHistoryChecked === true);
   return (
     <div>
       {merchant ? (
@@ -223,6 +225,7 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
       {order.network !== network && (
         <ServiceError error="This purchase belongs to another network. Do not sign with the current wallet." />
       )}
+      {!receivingChecked && <ServiceError error="This request predates receiving-address checks. Ask the merchant for a new payment link before paying; existing transfers need manual review." />}
       <div className={`detail-grid ${merchant ? 'merchant-flow' : 'customer-flow'}`}>
         <div className="stack purchase-stack">
           <section className="panel">
@@ -259,10 +262,20 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
                   </dd>
                 </div>
                 <div>
+                  <dt>Merchant receive index</dt>
+                  <dd>{order.addressIndex}</dd>
+                </div>
+                <div>
                   <dt>Payment window</dt>
                   <dd>{new Date(order.expiresAt).toLocaleString()}</dd>
                 </div>
               </dl>
+              {merchant && order.state === 'awaiting_payment' && (
+                <p className="fine">
+                  Before sharing this request, match this address and receive index in your
+                  physical wallet. Public-key derivation alone is not proof of wallet control.
+                </p>
+              )}
               {order.payment && (
                 <div style={{ marginTop: 22 }}>
                   <span className="label">Original payment</span>
@@ -397,7 +410,7 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
                 ) : (
                   <button
                     className="button"
-                    disabled={!!busy || wc.state !== 'connected'}
+                    disabled={!!busy || wc.state !== 'connected' || !receivingChecked}
                     onClick={() => prepare()}
                   >
                     <Wallet size={16} />
@@ -414,7 +427,7 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
               </div>
               <div className="panel-body">
                 {order.state === 'confirmed' && order.remaining >= 546 ? (
-                  <form onSubmit={requestRefund}>
+                  <form method="post" onSubmit={requestRefund}>
                     <div className="field">
                       <label htmlFor="refund-amount">Refund amount in satoshis</label>
                       <input

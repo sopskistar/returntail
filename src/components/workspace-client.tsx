@@ -261,7 +261,7 @@ export function StoreSettings() {
               {success}
             </div>
           )}
-          <form onSubmit={save}>
+          <form method="post" action="/api/store" onSubmit={save}>
             <div className="field">
               <label htmlFor="name">Store name</label>
               <input
@@ -424,7 +424,7 @@ export function NewOrder() {
               </div>
             </div>
           ) : (
-            <form onSubmit={submit}>
+            <form method="post" action="/api/orders" onSubmit={submit}>
               <div className="field">
                 <label htmlFor="title">Purchase description</label>
                 <input
