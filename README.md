@@ -6,7 +6,13 @@
 
 A BCH payment can settle in minutes. Resolving a problem afterward is harder: a merchant must find the original payment, evaluate the refund, avoid overpaying, authorize a new transaction, and give the customer evidence. **ReturnTail connects those steps without taking custody of either wallet.**
 
-**[Live application](https://returntail.vercel.app) · [Try the judge walkthrough](https://returntail.vercel.app/guide) · [Inspect the confirmed receipt](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02) · [Break It Lab](https://returntail.vercel.app/lab) · [Widget Factory presentation](https://docs.google.com/presentation/d/1dSwEQk5Qs9_TqOnJxOJmmFjK1PO3tGQLKaZ7u9cp12g/edit?usp=sharing)**
+**[Watch the demo video](https://youtu.be/gKpCjxFewzc) · [Live application](https://returntail.vercel.app) · [Try the judge walkthrough](https://returntail.vercel.app/guide) · [Inspect the confirmed receipt](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02) · [Break It Lab](https://returntail.vercel.app/lab) · [Widget Factory presentation](https://docs.google.com/presentation/d/1dSwEQk5Qs9_TqOnJxOJmmFjK1PO3tGQLKaZ7u9cp12g/edit?usp=sharing)**
+
+## Watch the ReturnTail demo
+
+[![Watch the ReturnTail hackathon demo on YouTube](https://img.youtube.com/vi/gKpCjxFewzc/hqdefault.jpg)](https://youtu.be/gKpCjxFewzc)
+
+**[Watch on YouTube](https://youtu.be/gKpCjxFewzc)** — cinematic introduction, real product walkthrough and Bitcoin Cash mainnet evidence.
 
 ![ReturnTail's deployed homepage](docs/images/returntail-production-home.png)
 
@@ -115,4 +121,4 @@ Built for **BCH BLAZE 2026**. The repository's earliest public commit is dated N
 
 **[Live app](https://returntail.vercel.app) · [Mainnet proof](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02) · [Presentation](https://docs.google.com/presentation/d/1dSwEQk5Qs9_TqOnJxOJmmFjK1PO3tGQLKaZ7u9cp12g/edit?usp=sharing)**
 
-*Final demo video: public video URL to be added after publication.*
+**[Final demo video on YouTube](https://youtu.be/gKpCjxFewzc)**
