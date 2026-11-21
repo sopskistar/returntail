@@ -3,7 +3,10 @@ import { databaseConnectionString } from '../src/server/database-url';
 describe('explicit PostgreSQL TLS configuration', () => {
   it('retains certificate and hostname verification when normalizing pg 8 aliases', () => {
     for (const mode of ['prefer', 'require', 'verify-ca']) {
-      const normalized = new URL(databaseConnectionString(`postgresql://account:example%40value@database.invalid/db?sslmode=${mode}&channel_binding=require`));
+      // Synthetic values only; no external database exists at the .invalid host.
+      const fixture = new URL(`postgresql://database.invalid/db?sslmode=${mode}&channel_binding=require`);
+      fixture.username = 'isolated-fixture'; fixture.password = 'example@value';
+      const normalized = new URL(databaseConnectionString(fixture.toString()));
       expect(normalized.searchParams.get('sslmode')).toBe('verify-full');
       expect(normalized.searchParams.get('channel_binding')).toBe('require');
       expect(normalized.password).toBe('example%40value');
