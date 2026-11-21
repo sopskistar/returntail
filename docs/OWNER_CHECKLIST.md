@@ -1,26 +1,39 @@
 # BCH BLAZE final release checklist
 
-Production: https://returntail.vercel.app. This checklist reflects the reported November 21 physical-wallet journey and the verification gaps found while preparing the final evidence. The 100,000-satoshi index-zero request was the earlier incorrect order; it is unrelated to the later reported 10,000-satoshi purchase and must remain preserved in history.
+Production: https://returntail.vercel.app. The public mainnet receipt and transaction links are now independently reconciled in [MAINNET_PROOF.md](MAINNET_PROOF.md). The confirmed event is a self-test, not an outside customer case.
 
-## Reconcile production evidence
+## Publish the verified evidence index
 
-1. Sign in through the existing merchant account in your normal browser. Open the confirmed 10,000-satoshi order and copy the persisted payment txid, 4,000-satoshi refund txid and refund database UUID. Do not share the private customer link, access token, browser cookie, wallet pairing QR, password, seed phrase or private key.
-2. Compare both txids using at least two BCH mainnet sources. Record each actual matching output index and amount, block hash/height, confirmations, and the verification time. The purchase txid supplied so far was not found by three public lookups; check it against the production order rather than relying on the copied value.
-3. In the merchant order, confirm the 4,000-satoshi refund is Confirmed, the rejected 7,000-satoshi request is Rejected, and the final accounting is 4,000 settled, 0 reserved, 6,000 remaining. This is application evidence, distinct from chain inclusion.
-4. Open `https://returntail.vercel.app/resolution/<refund-database-UUID>` while logged out. Confirm the receipt omits addresses, reasons, customer access data, sessions and raw transaction bytes. The UUID is the `refunds.id`, not the refund txid.
-5. Set Vercel `PUBLIC_PROOF_REFUND_ID` to that exact refund UUID only after steps 1–4 pass. Then verify `/evidence` publicly displays the receipt. Set `WIDGET_FACTORY_URL` to the publicly viewable URL of the already-created Google Slides deck. These values are currently not confirmed; do not substitute the payment txid or create another deck.
+The direct, privacy-limited receipt is public at:
 
-## Final submission gates
+`https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02`
 
-- [ ] Check the public repository and current Vercel deployment commit.
-- [ ] Complete the evidence ledger from the persisted production order and independent providers.
-- [ ] Publish and inspect the existing Widget Factory Google Slides presentation. Use the official [BCH BLAZE Widget Factory template](https://docs.google.com/presentation/d/1Yfuk9CJkf4U9M_WukcELhumWgj3Ak6345Ewy8hSp-Hk/edit?usp=sharing) as the content/layout requirement; do not replace the existing deck.
-- [ ] Record genuine hosted-app/chain evidence for the video. Any damaged-parcel story must be labeled hypothetical; this purchase/refund is a self-test. Do not stage wallet signing.
-- [ ] Check the DoraHacks project page and current submission fields. Official BCH BLAZE schedule lists submissions/judging beginning November 22, 2026 at 14:00 UTC. DoraHacks rules and any video-duration limit could not be confirmed through automated access; verify directly before uploading.
-- [ ] Confirm the account was registered before registration closed November 13, then verify preparation-stream roll-call and Telegram project confirmation in your own records. Neither attendance nor Telegram participation is evidenced in this repository.
-- [ ] Review homepage project, deck, and EMBER2026 CashTokens links. Confirm the donation address is still configured and token-compatible; do not send a donation as part of verification.
-- [ ] Manually submit the final project on DoraHacks and retain its submission confirmation. No submission or announcement is automated here.
+In the existing Vercel project, set the **Production** environment variable below to the refund database UUID (not either txid), then redeploy:
 
-## Accurate product limits
+```text
+PUBLIC_PROOF_REFUND_ID=6c5fb204-f24e-4fa1-b944-d4ff710ecb02
+```
 
-The system is non-custodial: the merchant wallet signs refunds. It cannot stop additional BCH transfers made outside ReturnTail. A supplied wallet xpub and pairing do not prove ownership. Refunds are new transactions. Approval reserves funds in the application ledger but does not itself transfer BCH. Unknown broadcasts retain the same signed attempt until reconciled. Current scope includes one store per account, standard P2PKH BCH, bounded receive-address discovery, no email verification/password recovery, and daily scheduled reconciliation plus manual refresh.
+Open `/evidence` in a logged-out browser and verify that it features the confirmed receipt. The direct route currently works without that setting; the evidence index remains in its unconfigured state until the setting is deployed.
+
+## Verify application decisions in the existing merchant account
+
+The public receipt shows the confirmed 4,000-sat resolution state and chain association. It does not show the separate 7,000-sat approval attempt or private decision audit. Sign in using the existing merchant account, open reference `RT-D992C0E1`, and check the refund history: 4,000 sats approved/settled, 7,000 sats rejected, 4,000 settled, 0 reserved, and 6,000 remaining. Do not share private customer links, access capabilities, browser cookies, passwords, wallet session material, QR codes, seed phrases, or private keys.
+
+## Complete the presentation and video
+
+- Add the public URL of the **existing** Widget Factory Google Slides deck as Production `WIDGET_FACTORY_URL`. Do not create or replace the deck. Confirm the homepage link points to the same deck.
+- Record a concise final demonstration using the public receipt, real chain explorer records, and current application screens. Use `VIDEO_SCRIPT.md` as the capture checklist. If there is no actual wallet recording, say so; do not recreate a signing UI.
+- The existing `artifacts/video/ReturnTail-preview.mp4` is an engineering preview from isolated QA screens, not the final mainnet demo.
+
+## Confirm competition eligibility manually
+
+- Open the [official BCH BLAZE site](https://bchblaze.cash/) and the [DoraHacks event page](https://dorahacks.io/hackathon/bchblaze2026). The official site gives the schedule: submissions start November 22, 2026 at 14:00 UTC; registration closed November 13; the showcase is November 28.
+- Verify registration status in the participant account. Verify that at least one representative completed the required preparation stream roll-call and that the project was confirmed in the BCH BLAZE Telegram. Neither is established by this repository or by the blockchain transactions.
+- The published Mainnet Track listing calls for a Widget Factory-template presentation, a working mainnet transaction feature, a live usable demo, and WizardConnect integration. Read the current DoraHacks form for the binding requirements and any video, media, or banner fields; the portal’s full current form was not independently accessible in this audit.
+- The project predates the November 17 first commit if earlier work existed. State its genuine pre-hackathon history and what materially changed during the event. The Git history alone does not establish project origin.
+- Submit manually and keep the DoraHacks confirmation. No submission or public announcement is automated.
+
+## Product limits and safety
+
+The merchant wallet signs refunds; the server has no spending keys. The system cannot prevent the merchant from making transfers outside ReturnTail. An xpub or wallet pairing is not proof of ownership. Refunds are new transactions. Approval reserves an amount in PostgreSQL but does not send BCH. Unknown broadcast outcomes retain signed bytes and reservations for reconciliation. Current scope includes one store per account, standard P2PKH BCH, bounded receive discovery, no email verification or password recovery, provider-assisted inclusion checks (not a full node), and daily scheduled reconciliation plus manual refresh.

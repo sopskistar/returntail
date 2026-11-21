@@ -1,8 +1,8 @@
-# Physical-wallet address preflight — November 20, 2026
+# Physical-wallet address preflight — historical report and later result
 
 ## Reported result and funding gate
 
-Paytaca **v0.27.3**, Android on **Samsung S24 Ultra**, successfully connected through WizardConnect. A merchant public receiving key was saved and a payment request was created. Its receive index is zero and its address differs from Paytaca’s normal Receive screen. At the November 20 snapshot, **no BCH had been sent to the index-zero request** and the destination was not independently ownership-verified. A later 10,000-sat mainnet payment was reported for a distinct request; see the [current proof ledger](MAINNET_PROOF.md). Account, wallet connection, payment request, destination and private access capability must remain intact.
+Paytaca **v0.27.3**, Android on **Samsung S24 Ultra**, successfully connected through WizardConnect. The original incorrect 100,000-sat request at index 0 remains preserved and unfunded; its destination and records were not rewritten. On November 21, the participant reported that the phone’s native BCH Receive address matched the advertised receiving chain at index 1. A separate 10,000-sat purchase and 4,000-sat refund were then completed and reconciled in [MAINNET_PROOF.md](MAINNET_PROOF.md). A public-chain/index match is not cryptographic proof of control. No claim is made here that the original index-zero request funded the confirmed purchase.
 
 ## Why zero differs
 
@@ -25,11 +25,11 @@ Update, November 21: the physical Paytaca preflight was reported to match the ad
 5. A native match at N > 0 explains the later-index address. It confirms consistency with the advertised public chain, **not control of hidden child zero**. No match is inconclusive beyond the bounded range; stop and investigate selected wallet/account, Receive-for selection and index range.
 6. **Do not fund this index-zero request.** No safe supported method was found to make Paytaca v0.27.3 display that exact hidden child in its normal interface. WizardConnect hdwalletv1 exposes no standard arbitrary-address display or message-signing request; Paytaca does not advertise a compatible address-verification extension. SDK `getPubkey` only derives locally from the same cached public key and is not independent proof. Do not use fabricated signing requests or send money as a test.
 
-**Current determination: the existing exact index-zero destination is NOT independently verifiable through the reviewed supported native interface/protocol. The funded workflow remains stopped.** A wallet-supported exact-address display/control-proof capability or a separately authorized positive-index request whose exact address can be matched is needed to proceed. Existing records are not silently rewritten. New allocations start at one, but a positive index alone is not ownership proof.
+**Historical determination at the November 20 stop point:** the existing exact index-zero destination was not independently verifiable in the reviewed native interface/protocol, so funding was stopped. The subsequent separate positive-index flow and mainnet result are recorded in the current proof ledger. This does not change or certify the old index-zero destination. New allocations start at one, but a positive index alone is not ownership proof.
 
 Server preparation and first signed submission for zero are blocked. Already saved signed bytes, network observation and reconciliation remain available; an unknown broadcast must never be replaced automatically. This restriction is conservative for all index-zero merchant requests in this release, not a claim that zero is invalid BCH.
 
-## Unfunded Selene preflight
+## Selene compatibility plan (written before the funded self-test)
 
 Use a separate browser profile for the customer. Do not replace the merchant connection. Record installed Selene version. Source review covers the released [2026.10.02 integration](https://git.xulu.tech/selene.cash/selene-wallet/-/blob/2026.10.02/src/kernel/bch/WizardConnectService.tsx); confirm release path/version against the installed app before relying on it. Source compatibility is not a physical-wallet test result.
 
@@ -42,4 +42,4 @@ Use a separate browser profile for the customer. Do not replace the merchant con
 
 ## Evidence boundary
 
-[Protocol](https://docs.riftenlabs.com/wizardconnect/protocol/) and [extensions](https://docs.riftenlabs.com/wizardconnect/extensions/) reviewed with installed core 0.2.10, dapp 0.2.7, react 0.2.6. No signing keys are requested or stored. Automated parsing, transaction, network-failure and database tests use isolated local fixtures. They do not establish mainnet purchase/refund evidence. `PUBLIC_PROOF_REFUND_ID` remains unset.
+[Protocol](https://docs.riftenlabs.com/wizardconnect/protocol/) and [extensions](https://docs.riftenlabs.com/wizardconnect/extensions/) were reviewed with installed core 0.2.10, dapp 0.2.7, react 0.2.6. No signing keys are requested or stored. Automated parsing, transaction, network-failure and database tests use isolated local fixtures; they are separate from the verified mainnet proof. Set Production `PUBLIC_PROOF_REFUND_ID` to the confirmed refund record UUID in [MAINNET_PROOF.md](MAINNET_PROOF.md) to feature that receipt on `/evidence`.

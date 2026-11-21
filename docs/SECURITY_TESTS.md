@@ -2,7 +2,7 @@
 
 Automated fixtures are isolated. They do not establish actual wallet compatibility, mainnet execution or hosted security. The BCH tests use real transaction serialization, signatures and Libauth VM validation. Integration tests run against PostgreSQL 17, not an in-memory database.
 
-Current executed totals: **40 core/unit + 45 PostgreSQL integration + 17 browser = 102 tests**. Final release report records the last check results and commit. Production-mode browser fixture tests are localhost-only; no automated funded transfer is permitted.
+Current audit run (November 21, 2026): **43 core/unit tests passed; 90 isolated PostgreSQL integration tests passed; 17 of 18 optimized-build browser tests passed**. The remaining browser case stopped before correction creation because its local fresh-address history check could not resolve the configured Chipnet provider (`EAI_AGAIN chipnet.imaginary.cash`, then timeout on retry). The test never reached funding or production; its cancellation UI state remained intact. The prior 18/18 browser result is retained below as a dated historical run. Production-mode browser fixture tests are localhost-only; no automated funded transfer is permitted.
 
 | Required adversarial case        | Implemented assertion                                                                               |
 | -------------------------------- | --------------------------------------------------------------------------------------------------- |

@@ -1,8 +1,8 @@
-> November 20 correction: Paytaca v0.27.3 hides receiving zero. Existing index-zero requests must remain unfunded. See [exact address preflight](WALLET_ADDRESS_PREFLIGHT.md); a matching later address does not verify the original destination.
+> **Historical compatibility note:** Paytaca v0.27.3 hides receiving zero, so the original 100,000-sat index-zero request remains preserved and unfunded. A later distinct positive-index request was funded and completed in the mainnet self-test; see [the verified transaction ledger](MAINNET_PROOF.md). Do not infer that the index-zero request was changed, paid, or ownership-verified.
 
 # Physical-wallet readiness — November 20, 2026
 
-**Ready for an unfunded device preflight; a funded journey is conditional on that preflight.** No physical Paytaca or Selene handshake, signature or app mainnet transfer has been observed yet. Production QR creation/cancellation and the deployed runtime's real BCH provider connections have been verified. See [the exact checklist](OWNER_CHECKLIST.md).
+**This document is a pre-transaction compatibility report.** The participant later completed a physical-wallet mainnet purchase and refund. Transaction facts and independent provider checks are in [MAINNET_PROOF.md](MAINNET_PROOF.md); the `WALLET_REQUEST_FAILED` cause and fix are retained below. The public-chain and app evidence do not independently prove which mobile wallet performed a signature. The original 100,000-sat index-zero request remains untouched and unfunded.
 
 ## Reviewed compatibility
 
