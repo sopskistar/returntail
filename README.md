@@ -12,7 +12,7 @@ A BCH payment can settle in minutes. Resolving a problem afterward is harder: a 
 
 [![Watch the ReturnTail hackathon demo on YouTube](https://img.youtube.com/vi/gKpCjxFewzc/hqdefault.jpg)](https://youtu.be/gKpCjxFewzc)
 
-**[Watch on YouTube](https://youtu.be/gKpCjxFewzc)** — cinematic introduction, real product walkthrough and Bitcoin Cash mainnet evidence.
+**[Watch on YouTube](https://youtu.be/gKpCjxFewzc)** — ReturnTail's submitted product demonstration.
 
 ![ReturnTail's deployed homepage](docs/images/returntail-production-home.png)
 
