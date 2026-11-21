@@ -10,6 +10,8 @@ The public-resolution endpoint was also reviewed and found to select complete pe
 
 Local verification for this release: typecheck and lint passed; 43 unit tests, 90 isolated PostgreSQL tests, and 18 localhost browser tests passed; production build completed; audit found 0 high-severity vulnerabilities; secret-pattern scan passed across 142 candidate files. The `/evidence` page was captured and inspected at desktop and mobile sizes with no horizontal overflow. The 45-second engineering preview was not re-rendered as a final demo; the final video remains blocked on independently reconciled production identifiers and authentic capture evidence.
 
+Commit `5a6f3a613ab6e26e8c4b42f37801af4005ceb4f7` was pushed to `main`; GitHub's Vercel status is success. The deployed public `/evidence` route returns 200 and the read-only production smoke passed 23/23 at 17:41:39 UTC, including mainnet/database health and expected auth rejection. No migrations or production financial records were changed. This confirms deployment/runtime only; it does not reconcile the reported refund.
+
 ## Decision: begin unfunded preflight only
 
 **Do not fund the preserved index-zero request. It is not independently ownership-verified.** No ReturnTail BCH payment/refund was executed, no mainnet proof was added, and the hackathon was not submitted.

@@ -34,7 +34,7 @@ The public receipt route uses the **refund database UUID**, not the transaction 
 
 ## Public receipt privacy review
 
-Code review found that the receipt API selected the complete persisted chain observation, which included raw transaction bytes. The receipt API now whitelists public proof fields only: network, order reference, transaction IDs, output index and amounts, fee, confirmation/block details, and provider-proof metadata. It excludes destination addresses, customer reason, email, session/capability data, and raw transaction bytes. The isolated PostgreSQL regression test exercises this projection; it does not verify the production refund. This privacy fix is not public until its deployment is verified.
+Code review found that the receipt API selected the complete persisted chain observation, which included raw transaction bytes. The receipt API now whitelists public proof fields only: network, order reference, transaction IDs, output index and amounts, fee, confirmation/block details, and provider-proof metadata. It excludes destination addresses, customer reason, email, session/capability data, and raw transaction bytes. The isolated PostgreSQL regression test exercises this projection; it does not verify the production refund. This privacy fix is live in Vercel deployment for commit `5a6f3a613ab6e26e8c4b42f37801af4005ceb4f7`; hosted mainnet smoke passed 23/23 on November 21. No refund UUID is configured, so the receipt route's public projection cannot be inspected against the actual production refund yet.
 
 ## Verified read-only infrastructure (not transaction evidence)
 
