@@ -221,6 +221,11 @@ async function dispatch(req: Request, ctx: Context) {
   if (root === 'attempts') {
     uuid.parse(id);
     const who = await actor(req);
+    if (action === 'signing-check') {
+      await rateLimit(pool(), `signing-check:${id}`, 20);
+      z.object({}).strict().parse(body);
+      return service.signingPreflight(id, who);
+    }
     if (action === 'sign') {
       const input = z
         .object({ raw: z.string().regex(/^(?:[a-f0-9]{2}){10,100000}$/i) })

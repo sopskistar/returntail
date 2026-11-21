@@ -131,6 +131,18 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
         throw new Error(
           'Funding paused: Paytaca 0.27.3 cannot display this request’s index-zero destination. Do not authorize payment.',
         );
+      if (a.kind === 'payment') {
+        try {
+          await api<{ canRequestSignature: true; historyChecked: true }>(
+            `attempts/${a.id}/signing-check`,
+            {},
+            access.current,
+          );
+        } catch (e) {
+          await refresh();
+          throw e;
+        }
+      }
       const storageKey = `returntail-signed-${a.id}`;
       let raw = sessionStorage.getItem(storageKey);
       if (!raw) {

@@ -14,6 +14,7 @@ import {
   type TransactionCommon,
   type Output,
 } from '@bitauth/libauth';
+import { sourceOutputToRelay } from '@wizardconnect/core/hdwalletv1-serialize';
 import { invariant } from './errors';
 export type Network = 'mainnet' | 'chipnet';
 export type Utxo = {
@@ -239,11 +240,16 @@ export function walletRequest(plan: Plan) {
   const unsigned = parseTransaction(plan.unsignedHex);
   return {
     transaction: plan.unsignedHex,
-    sourceOutputs: plan.sourceOutputs.map((o, i) => ({
-      ...unsigned.inputs[i],
-      lockingBytecode: hexToBin(o.lockingBytecode),
-      valueSatoshis: BigInt(o.valueSatoshis),
-    })),
+    // WizardConnect's relay is JSON. Encode native Uint8Array/BigInt source
+    // output fields with the protocol's canonical wire serializer before the
+    // SDK calls JSON.stringify; native BigInt otherwise throws locally.
+    sourceOutputs: plan.sourceOutputs.map((o, i) =>
+      sourceOutputToRelay({
+        ...unsigned.inputs[i],
+        lockingBytecode: hexToBin(o.lockingBytecode),
+        valueSatoshis: BigInt(o.valueSatoshis),
+      }),
+    ),
     broadcast: false,
     userPrompt: `ReturnTail ${plan.network}: send ${plan.amount} satoshis to ${plan.destination}. Network fee ${plan.fee} satoshis. Refunds are new transactions.`,
   };

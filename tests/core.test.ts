@@ -4,6 +4,7 @@ import {
   addressScript,
   deriveAddress,
   parseTransaction,
+  walletRequest,
   txid,
   validateSigned,
   verifyPayment,
@@ -16,6 +17,7 @@ import { signPlan } from '../src/client/wallet-adapter';
 import { assertOrigin } from '../src/server/security';
 import { verifyMerkle } from '../src/server/chain';
 import { RelayMsgAction } from '@wizardconnect/core';
+import { parseExtendedJson } from '@wizardconnect/core';
 import { xpub, address, destination, fixturePlan, signFixture, purchaseFixture } from './fixtures';
 describe('real BCH byte parsing and authorization (isolated fixtures)', () => {
   it('links receipts to the explicit explorer network rather than the removed root tx route', () => {
@@ -85,6 +87,15 @@ describe('real BCH byte parsing and authorization (isolated fixtures)', () => {
   });
   it('rejects insufficient confirmed BCH', () =>
     expect(() => buildPlan([], destination, 1000, address, 'chipnet')).toThrow('Not enough'));
+  it('uses WizardConnect relay-safe encoding for transaction source outputs', () => {
+    const plan = fixturePlan();
+    const request = walletRequest(plan);
+    const wire = JSON.stringify(request);
+    expect(request.sourceOutputs[0].valueSatoshis).toBe('<bigint: 100000n>');
+    expect(JSON.parse(wire).sourceOutputs[0].lockingBytecode).toMatch(/^[0-9a-f]+$/);
+    expect(parseExtendedJson(wire).sourceOutputs[0].valueSatoshis).toBe(100000n);
+    expect(request.broadcast).toBe(false);
+  });
   it('rejects duplicate matching merchant outputs', () => {
     const t = purchaseFixture(),
       tx = parseTransaction(t.raw);
@@ -131,7 +142,24 @@ describe('wallet refusal and disconnection', () => {
         true,
         fixturePlan(),
       ),
-    ).rejects.toMatchObject({ stage: 'relay_submission', code: 'WALLET_REQUEST_FAILED' });
+    ).rejects.toMatchObject({ stage: 'relay_submission', code: 'RELAY_SUBMISSION_FAILED' });
+  });
+  it('identifies BigInt serialization failure without exposing the raw exception', async () => {
+    const failure = signPlan(
+      {
+        isWalletDiscovered: () => true,
+        signTransaction: async () => {
+          throw new TypeError('Do not know how to serialize a BigInt');
+        },
+      },
+      true,
+      fixturePlan(),
+    );
+    await expect(failure).rejects.toMatchObject({
+      stage: 'relay_submission',
+      code: 'BIGINT_SERIALIZATION_FAILED',
+    });
+    await expect(failure).rejects.toThrow('No wallet request was sent');
   });
   it('passes broadcast:false and explicit source-output data', async () => {
     const p = fixturePlan();
@@ -142,7 +170,7 @@ describe('wallet refusal and disconnection', () => {
         signTransaction: async (req) => {
           requested = true;
           expect(req.transaction.broadcast).toBe(false);
-          expect(req.transaction.sourceOutputs[0].valueSatoshis).toBe(100000n);
+          expect(req.transaction.sourceOutputs[0].valueSatoshis).toBe('<bigint: 100000n>');
           expect(req.inputPaths).toEqual(p.inputPaths);
           return {
             action: RelayMsgAction.SignTransactionResponse,

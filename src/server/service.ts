@@ -611,6 +611,101 @@ export async function verifyPurchase(
     return { state, txid: observed.txid, confirmations: observed.confirmations };
   });
 }
+
+/**
+ * Reconcile the existing payment attempt and destination history immediately
+ * before asking a wallet to sign. This does not create or change an attempt.
+ */
+export async function signingPreflight(
+  attemptId: string,
+  actor: { merchantId: string } | { capability: string },
+  provider: Chain = chain,
+) {
+  const attempt = (await pool().query<Attempt>('SELECT * FROM attempts WHERE id=$1', [attemptId]))
+    .rows[0];
+  invariant(attempt, 'NOT_FOUND', 'Transaction attempt not found.', 404);
+  invariant(attempt.kind === 'payment', 'INVALID_ATTEMPT', 'This is not a payment attempt.', 409);
+  const order = await orderFor(pool(), attempt.order_id, actor);
+
+  if (attempt.raw_tx) {
+    await reconcileAttempt(attempt.id, provider);
+    throw new AppError(
+      'SAVED_TRANSACTION_EXISTS',
+      'This attempt already has saved signed bytes. It was reconciled; refresh the checkout and do not request another signature.',
+      409,
+    );
+  }
+  invariant(
+    attempt.state === 'awaiting_signature' && new Date(attempt.expires_at).getTime() > Date.now(),
+    'ATTEMPT_NOT_SIGNABLE',
+    'This saved attempt is no longer an active unsigned signing request.',
+    409,
+  );
+  invariant(
+    order.state === 'awaiting_payment' && new Date(order.expires_at).getTime() > Date.now(),
+    'ORDER_NOT_PAYABLE',
+    'This order is no longer awaiting payment.',
+    409,
+  );
+
+  const priorPayment = await pool().query('SELECT txid FROM payments WHERE order_id=$1', [order.id]);
+  if (priorPayment.rows.length) {
+    await verifyPurchase(order.id, actor, undefined, provider);
+    throw new AppError(
+      'PAYMENT_ALREADY_RECORDED',
+      'A payment is already recorded for this order. The attempt was not signed again.',
+      409,
+    );
+  }
+
+  const history = await provider.history(order.address, order.network);
+  if (history.length) {
+    try {
+      await verifyPurchase(order.id, actor, undefined, provider);
+      throw new AppError(
+        'PAYMENT_ALREADY_FOUND',
+        'Payment activity was reconciled for this order. The attempt was not signed again.',
+        409,
+      );
+    } catch (error) {
+      if (error instanceof AppError && error.code === 'PAYMENT_ALREADY_FOUND') throw error;
+      if (error instanceof AppError && error.code === 'PAYMENT_NOT_FOUND')
+        throw new AppError(
+          'PAYMENT_ACTIVITY_REVIEW',
+          'The receiving address has chain activity that does not verify as this payment. Manual review is required before signing.',
+          409,
+        );
+      throw error;
+    }
+  }
+
+  return transaction(async (db) => {
+    const lockedOrder = await orderFor(db, order.id, actor, true),
+      lockedAttempt = (
+        await db.query<Attempt>('SELECT * FROM attempts WHERE id=$1 FOR UPDATE', [attemptId])
+      ).rows[0],
+      payments = await db.query('SELECT id FROM payments WHERE order_id=$1', [order.id]);
+    invariant(
+      lockedAttempt?.kind === 'payment' &&
+        lockedAttempt.state === 'awaiting_signature' &&
+        !lockedAttempt.raw_tx &&
+        new Date(lockedAttempt.expires_at).getTime() > Date.now(),
+      'ATTEMPT_NOT_SIGNABLE',
+      'The saved attempt changed while chain history was checked. Refresh before continuing.',
+      409,
+    );
+    invariant(
+      lockedOrder.state === 'awaiting_payment' &&
+        new Date(lockedOrder.expires_at).getTime() > Date.now() &&
+        !payments.rows.length,
+      'ORDER_NOT_PAYABLE',
+      'The order changed while chain history was checked. Refresh before continuing.',
+      409,
+    );
+    return { canRequestSignature: true, historyChecked: true };
+  });
+}
+
 export async function requestRefund(
   id: string,
   capability: string,

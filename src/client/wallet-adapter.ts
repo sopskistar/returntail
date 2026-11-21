@@ -62,20 +62,43 @@ export async function signPlan(
         'WALLET_RESPONSE_TIMEOUT',
         'The wallet response timed out. The wallet may still have acted; reconcile the saved attempt and address history before retrying.',
       );
+    if (!requestSent && !responseReceived) {
+      const code = relayFailureCode(error);
+      const message =
+        code === 'BIGINT_SERIALIZATION_FAILED'
+          ? 'ReturnTail could not encode the signing request for WizardConnect. No wallet request was sent.'
+          : code === 'RELAY_PUBLISH_REJECTED_ALL'
+            ? 'Every configured WizardConnect relay rejected the outgoing request. The wallet did not return a response.'
+            : code === 'SESSION_PEER_KEY_MISSING'
+              ? 'The active WizardConnect relay has no paired wallet key. Repair the wallet pairing before signing.'
+              : 'WizardConnect could not publish the signing request. Check the saved attempt and address history before retrying.';
+      throw new WalletSigningError('relay_submission', code, message);
+    }
     throw new WalletSigningError(
-      responseReceived ? 'wallet_response' : requestSent ? 'wallet_response' : 'relay_submission',
-      'WALLET_REQUEST_FAILED',
+      'wallet_response',
+      'WALLET_RESPONSE_FAILED',
       responseReceived
         ? 'The wallet response could not be processed. Check the saved attempt and address history before retrying.'
-        : requestSent
-          ? 'WizardConnect sent the request but no usable wallet response was received. Check the saved attempt and address history before retrying.'
-          : 'WizardConnect could not submit the request to the wallet. Confirm the session is connected and retry only after checking the saved attempt and address history.',
+        : 'WizardConnect sent the request but no usable wallet response was received. Check the saved attempt and address history before retrying.',
     );
   } finally {
     signer.off?.('messagesent', sent);
     signer.off?.('messagereceived', received);
   }
 }
+
+function relayFailureCode(error: unknown): string {
+  const message = error instanceof Error ? error.message : '';
+  if (/Do not know how to serialize a BigInt/i.test(message))
+    return 'BIGINT_SERIALIZATION_FAILED';
+  if (/^Failed to publish sign_transaction_request to all relays$/i.test(message))
+    return 'RELAY_PUBLISH_REJECTED_ALL';
+  if (/^Cannot relay message: paired public key not set\./i.test(message))
+    return 'SESSION_PEER_KEY_MISSING';
+  if (/larger than NIP-44/i.test(message)) return 'RELAY_MESSAGE_TOO_LARGE';
+  return 'RELAY_SUBMISSION_FAILED';
+}
+
 export function walletSource(
   manager: DappConnectionManager | null,
   n: Network,

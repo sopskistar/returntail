@@ -4,7 +4,7 @@ import { Pool } from 'pg';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { binToHex } from '@bitauth/libauth';
-import { addressScript, buildPlan, deriveAddress } from '../../src/core/bch';
+import { addressScript, buildPlan, deriveAddress, txid } from '../../src/core/bch';
 import { pool, transaction } from '../../src/server/db';
 import {
   capabilityHash,
@@ -572,6 +572,66 @@ describe('durable transaction settlement state machine', () => {
     await expect(
       service.requestRefund(orderId, 'invalid'.padEnd(48, 'x'), input, k),
     ).rejects.toThrow();
+  });
+});
+
+describe('payment signing preflight', () => {
+  const source = { xpub, changeXpub: xpub, changeIndex: 2, indices: [0] };
+  async function preparedPayment(provider = fixtureChain({ missing: true })) {
+    return service.prepareAttempt(orderId, { capability: cap }, source, randomUUID(), undefined, provider);
+  }
+
+  it('permits the same saved unsigned attempt only after an empty destination-history check', async () => {
+    const attempt = await preparedPayment(),
+      before = (await pool().query('SELECT raw_tx,state FROM attempts WHERE id=$1', [attempt.id]))
+        .rows[0];
+    const result = await service.signingPreflight(
+      attempt.id,
+      { capability: cap },
+      fixtureChain({ missing: true }),
+    );
+    expect(result).toEqual({ canRequestSignature: true, historyChecked: true });
+    expect((await pool().query('SELECT raw_tx,state FROM attempts WHERE id=$1', [attempt.id])).rows[0])
+      .toEqual(before);
+  });
+
+  it('verifies and blocks a payment already visible at the destination', async () => {
+    const attempt = await preparedPayment();
+    await expect(
+      service.signingPreflight(attempt.id, { capability: cap }, fixtureChain()),
+    ).rejects.toMatchObject({ code: 'PAYMENT_ALREADY_FOUND' });
+    expect((await pool().query('SELECT state FROM orders WHERE id=$1', [orderId])).rows[0].state).toBe(
+      'confirmed',
+    );
+    expect((await pool().query('SELECT raw_tx FROM attempts WHERE id=$1', [attempt.id])).rows[0].raw_tx)
+      .toBeNull();
+  });
+
+  it('blocks unrelated receiving-address history for manual review', async () => {
+    const attempt = await preparedPayment();
+    await expect(
+      service.signingPreflight(
+        attempt.id,
+        { capability: cap },
+        fixtureChain({ recipient: address }),
+      ),
+    ).rejects.toMatchObject({ code: 'PAYMENT_ACTIVITY_REVIEW' });
+    expect((await pool().query('SELECT state FROM attempts WHERE id=$1', [attempt.id])).rows[0].state)
+      .toBe('awaiting_signature');
+  });
+
+  it('reconciles saved signed bytes and blocks a second wallet signature', async () => {
+    const attempt = await preparedPayment(),
+      raw = signFixture(attempt.plan);
+    await pool().query(
+      "UPDATE attempts SET raw_tx=$1,txid=$2,state='broadcast_unknown' WHERE id=$3",
+      [raw, txid(raw), attempt.id],
+    );
+    await expect(
+      service.signingPreflight(attempt.id, { capability: cap }, fixtureChain({ missing: true })),
+    ).rejects.toMatchObject({ code: 'SAVED_TRANSACTION_EXISTS' });
+    expect((await pool().query('SELECT raw_tx,state FROM attempts WHERE id=$1', [attempt.id])).rows[0])
+      .toEqual({ raw_tx: raw, state: 'broadcast_unknown' });
   });
 });
 
