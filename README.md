@@ -1,121 +1,94 @@
 # ReturnTail
 
-**Make it right. Make it verifiable.**
+**Non-custodial Bitcoin Cash refund resolution — from a verified purchase to a checkable receipt.**
 
-ReturnTail connects a Bitcoin Cash purchase to a customer’s refund request, a merchant’s decision, a wallet-authorized refund transaction, and a shareable record of what happened. BCH goes directly between wallets: ReturnTail does not custody funds or hold spending keys.
+*Make it right. Make it verifiable.*
 
-[Live app](https://returntail.vercel.app) · [Judge walkthrough](https://returntail.vercel.app/guide) · [Break It Lab](https://returntail.vercel.app/lab) · [Widget Factory presentation](https://docs.google.com/presentation/d/1dSwEQk5Qs9_TqOnJxOJmmFjK1PO3tGQLKaZ7u9cp12g/edit?usp=sharing) · [Public mainnet receipt](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02) · [Evidence page](https://returntail.vercel.app/evidence) · [Source](https://github.com/sopskistar/ReturnTail)
+A BCH payment can settle in minutes. Resolving a problem afterward is harder: a merchant must find the original payment, evaluate the refund, avoid overpaying, authorize a new transaction, and give the customer evidence. **ReturnTail connects those steps without taking custody of either wallet.**
 
-> **For judges:** the walkthrough and Break It Lab require no wallet connection or payment. They are a guided explanation and read-only hosted security probes; neither creates a transaction. The real mainnet self-test and its independent transaction links are documented below.
+**[Live application](https://returntail.vercel.app) · [Try the judge walkthrough](https://returntail.vercel.app/guide) · [Inspect the confirmed receipt](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02) · [Break It Lab](https://returntail.vercel.app/lab) · [Widget Factory presentation](https://docs.google.com/presentation/d/1dSwEQk5Qs9_TqOnJxOJmmFjK1PO3tGQLKaZ7u9cp12g/edit?usp=sharing)**
 
-![Actual ReturnTail production homepage capture](docs/images/returntail-production-home.png)
+![ReturnTail's deployed homepage](docs/images/returntail-production-home.png)
 
-*Hosted ReturnTail interface. The purchase-to-refund journey shown in the hero is a product explanation; the independently checked transaction evidence is in the public receipt below.*
+## One purchase. One connected resolution.
 
-## The problem after checkout
+1. **Verify the payment.** A merchant creates a request with its own BCH receiving address. ReturnTail checks the matching transaction output and its confirmation.
+2. **Request a refund.** The customer uses their private purchase link to request a full or partial refund to a specified BCH address.
+3. **Approve within the balance.** The merchant accepts or rejects the request. Atomic database reservations prevent approved and settled refunds from exceeding the recorded purchase value.
+4. **Authorize in the wallet.** The merchant reviews and signs a **new** BCH transaction using WizardConnect. ReturnTail never holds the merchant's spending key.
+5. **Confirm and share proof.** ReturnTail checks transaction evidence, reconciles settlement status, and produces a public-safe receipt linking the original payment and refund.
 
-BCH settles directly and irreversibly. When an order needs a partial refund, the merchant and customer otherwise have to reconnect a payment, a reason, a decision, a destination, and a new wallet transfer across messages and spreadsheets. A merchant can also accidentally approve more than the original purchase amount when several requests arrive together.
+**A refund is a new BCH payment, not a reversal of the original transaction.** Merchant approval, wallet signing and blockchain confirmation are recorded as separate states.
 
-## One connected resolution record
+## A completed BCH mainnet self-test
 
-ReturnTail assigns a fresh receiving address to each payment request, checks the exact BCH output, and allows the customer holding that request’s private capability to ask for a refund. The merchant reviews each request and approves or rejects it. Approval reserves the amount in the app’s accounting; the merchant then reviews and signs a **new** BCH transaction in their wallet. ReturnTail validates the signed transaction, records its identity before broadcast, and tracks network observation separately from confirmation.
+On **November 21, 2026**, I tested ReturnTail using separate customer and merchant wallets. This was a real-money *self-test*, not a third-party customer order.
 
-```mermaid
-flowchart LR
-  A[Unique BCH payment request] --> B[Exact output and inclusion checked]
-  B --> C[Customer refund request]
-  C --> D[Merchant decision and atomic reservation]
-  D --> E[Merchant wallet reviews and signs]
-  E --> F[Saved transaction broadcast and reconciled]
-  F --> G[Public-safe resolution receipt]
-```
-
-The merchant’s approval and the chain’s transaction inclusion answer different questions. The receipt keeps those application records distinct from transaction and block facts.
-
-## A real BCH mainnet self-test
-
-The following transactions are independently cross-checked against Selene Explorer and Blockchair. The application receipt links them as one confirmed resolution. Wallet names and the excessive-refund decision are application/user-reported context, not facts that a blockchain explorer can establish.
-
-| Event | Verified chain details | Explorer records |
+| Step | Result | Evidence |
 | --- | --- | --- |
-| Customer payment | **10,000 sats**, output `vout 0`; block `978327`; block hash `0000000000000000002aa13e287c2ac732a0f45edfd1897ce63b610cc9940e70`; 28 confirmations at provider tip `978354` (November 21, 2026 snapshot). | [Selene](https://explorer.selene.cash/tx/2ea6fecd4d77ad7af9bbd69038eb0c76f1d8a536835041828da0298189b51c65?network=mainnet) · [Blockchair](https://blockchair.com/bitcoin-cash/transaction/2ea6fecd4d77ad7af9bbd69038eb0c76f1d8a536835041828da0298189b51c65) |
-| Merchant-authorized refund | **4,000 sats**, output `vout 0`; spent the original payment’s `vout 0`; 454-sat fee; 5,546-sat second output; block `978337`; block hash `000000000000000001a1fd253dac1529f3de6e130440f5678a79ead87cd2d172`; 18 confirmations at provider tip `978354` (November 21, 2026 snapshot). | [Selene](https://explorer.selene.cash/tx/c4ce3d46aa2f14c81a9a6fb8b12dcde6e8e9678539f1e20d060073cce670b85b?network=mainnet) · [Blockchair](https://blockchair.com/bitcoin-cash/transaction/c4ce3d46aa2f14c81a9a6fb8b12dcde6e8e9678539f1e20d060073cce670b85b) |
+| Original payment | **10,000 satoshis** paid to the merchant request; confirmed in block **978327** | [Transaction on Selene Explorer](https://explorer.selene.cash/tx/2ea6fecd4d77ad7af9bbd69038eb0c76f1d8a536835041828da0298189b51c65?network=mainnet) · [Blockchair](https://blockchair.com/bitcoin-cash/transaction/2ea6fecd4d77ad7af9bbd69038eb0c76f1d8a536835041828da0298189b51c65) |
+| Refund decision | **4,000 satoshis** approved and reserved; **6,000** remained available | [Application and test-evidence explanation](https://returntail.vercel.app/lab) |
+| Excessive request | An additional **7,000-satoshi** approval was blocked; the request was then rejected | [Financial safeguard tests](docs/SECURITY_TESTS.md) |
+| Refund settlement | **4,000 satoshis** sent in a new BCH transaction; **454-satoshi** network fee; confirmed in block **978337** | [Transaction on Selene Explorer](https://explorer.selene.cash/tx/c4ce3d46aa2f14c81a9a6fb8b12dcde6e8e9678539f1e20d060073cce670b85b?network=mainnet) · [Blockchair](https://blockchair.com/bitcoin-cash/transaction/c4ce3d46aa2f14c81a9a6fb8b12dcde6e8e9678539f1e20d060073cce670b85b) |
+| Public receipt | Both confirmed transactions linked to the same resolution record | **[Open the verified ReturnTail receipt](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02)** |
 
-The purchase hash is **`2ea6fecd…`**. An earlier transcription in the project ledger used **`2ea6feed…`** (one character differs) and returned not found. The corrected hash above is the one present in both providers and the public receipt. Confirmation counts are a dated observation, not a current finality guarantee; the explorers show the current chain state when opened.
+The refund transaction spends the **10,000-satoshi output** from the original purchase. Selene Explorer and Blockchair independently reported matching transaction outputs and block records. The **4,000/7,000 approval decisions are application evidence**, not facts visible on the blockchain; their detailed private merchant audit was not independently accessed during the published reconciliation. Selene and Paytaca wallet attribution comes from the physical-wallet self-test, not the explorers.
 
-The [public-safe resolution receipt](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02) is refund record **`6c5fb204-f24e-4fa1-b944-d4ff710ecb02`**, reference `RT-D992C0E1`, state `confirmed`. Its unauthenticated API response links the two txids and confirms the purchase/refund amounts and recorded inclusion checks. It omits customer destination, reason, email, access capability, session details, and raw transaction bytes.
+[Full proof ledger, source comparison and verification limitations](docs/MAINNET_PROOF.md)
 
-The user reports using Selene for the 10,000-sat payment and Paytaca to authorize the 4,000-sat refund. The user also reports that a 7,000-sat request was refused because the 4,000-sat refund had reserved the available balance, and was then rejected. The merchant’s private audit rows for those decisions were not independently retrieved in this session. ReturnTail’s public receipt does not prove that 7,000-sat decision. See the [evidence ledger](docs/MAINNET_PROOF.md) for the sources, timestamps, discrepancy, and remaining application-record check.
+## Explore ReturnTail in two minutes — no funds needed
 
-The existing Vercel production configuration currently features this receipt on `/evidence` using `PUBLIC_PROOF_REFUND_ID=6c5fb204-f24e-4fa1-b944-d4ff710ecb02`, the verified **refund database UUID**, not a txid. The public page and logged-out receipt endpoint were checked after deployment.
-
-## A no-payment judge walkthrough
-
-1. Open the [live app](https://returntail.vercel.app) and select **Explore the workflow** or open the [judge walkthrough](https://returntail.vercel.app/guide). Follow the six stages; do not create a payment request or connect a wallet.
-2. Open [Break It Lab](https://returntail.vercel.app/lab). Run **Public service readiness**, **Private merchant workspace**, and **Private purchase access**. The probes use credential-free `GET` requests and show expected readiness/authentication responses. They make no financial writes.
-3. In the same page, inspect the links to the isolated PostgreSQL refund tests and BCH transaction validation tests. Those tests use fixtures and do not reproduce the physical-wallet transactions.
-4. Open the [public receipt](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02), then follow its two explorer links. Compare transaction IDs, outputs, block heights and hashes. No account is required.
-
-Do not submit a wallet signature or send BCH during judging. The receipt and explorers demonstrate the completed test; the walkthrough and lab demonstrate product flows and access controls without funds.
-
-## What each piece does
-
-| Component | Role in ReturnTail |
+| Do | See |
 | --- | --- |
-| **Bitcoin Cash** | Direct merchant payments and new, merchant-authorized refund transactions. A refund is not a reversal of the purchase. |
-| **WizardConnect** | Connects the browser to the wallet for address discovery and explicit transaction signing. A pairing or public key alone does not establish ownership. |
-| **Paytaca** | Merchant wallet used for the reported signing and refund in this real self-test. |
-| **Selene** | Customer wallet reported for the original payment and the customer’s refund destination. |
-| **PostgreSQL / Neon** | Stores merchant sessions, purchase/refund records, idempotency, audit history, input reservations, and settlement state. The server never stores a seed phrase or spending key. |
-| **Independent BCH providers** | Supply transaction and block observations; ReturnTail checks transaction identity, exact outputs, merkle inclusion, and a witness provider. It is provider-assisted verification, not a full proof-of-work node. |
+| Open **[Play the Resolution](https://returntail.vercel.app/guide)** and run the walkthrough. | How the purchase, request, merchant decision and receipt connect. It does not create a payment. |
+| Open **[Break It Lab](https://returntail.vercel.app/lab)** and run the three read-only checks. | Public service readiness and expected access-denial responses for private merchant and purchase APIs. |
+| Review the lab's **DO → SEE → PROOF** tests. | Source-linked, isolated test evidence for cumulative refund limits, duplicate processing and merchant authorization. |
+| Open the **[public mainnet receipt](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02)** and follow its explorer links. | The actual payment, new refund, amounts and confirmation evidence without signing in or spending BCH. |
 
-## Financial safeguards
+The lab's live probes are safe, credential-free reads. Its financial safeguards are backed by automated tests; they are not presented as live attacks against production funds.
 
-- Amounts are integer satoshis; the selected recipient output must exactly match the reviewed amount and BCH script.
-- PostgreSQL row locks and conditional balance updates serialize refund decisions. The cumulative reserved plus settled amount cannot exceed the confirmed purchase amount.
-- Signed transaction bytes and their computed txid are durably saved before broadcast. Unknown outcomes keep reservations; recovery reconciles and can only rebroadcast the same bytes.
-- The unsigned plan fixes recipient, source inputs, fee budget, and change destination. Returned signatures are parsed, checked for unchanged intent, and validated by the BCH script VM with the required sighash flags.
-- Database uniqueness and idempotency protect payment outputs, settlement identities, input reservations, and repeated requests. Merchant authorization is checked before idempotent results are returned.
-- Cancelled payment requests remain in history, their receiving destinations are retired, and late activity is retained for manual review.
-- A merchant’s xpub is public derivation material, **not ownership proof**. The application cannot prevent the merchant from making additional transfers outside ReturnTail.
+## Why Bitcoin Cash — and what ReturnTail adds
 
-More detail: [architecture](docs/ARCHITECTURE.md), [security tests](docs/SECURITY_TESTS.md), and the [cancellation safety design](docs/PAYMENT_REQUEST_CANCELLATION.md).
+| Foundation | ReturnTail's role |
+| --- | --- |
+| **Bitcoin Cash** | Direct wallet-to-wallet purchases and refunds with publicly inspectable transactions |
+| **WizardConnect** | Wallet pairing and explicit signing without transferring private keys to the web application |
+| **Selene / Paytaca** | Customer / merchant wallets used in the recorded mainnet self-test |
+| **PostgreSQL + Neon** | Atomic refund reservations, authorization, idempotency, audit and reconciliation state |
+| **BCH network providers** | Transaction output, block and merkle-inclusion checks, with a second provider as a witness |
 
-## Architecture
+Payment processors can display a transaction hash; **ReturnTail focuses on the workflow after checkout**: linking a verified purchase to a specific refund request, stopping cumulative over-refunding, keeping approval separate from signing, and producing a checkable resolution record.
 
-Next.js App Router and TypeScript expose JSON API routes with Zod input validation. The server uses parameterized PostgreSQL transactions for authentication, idempotency and financial state transitions. `src/core/bch.ts` constructs BCH plans and validates signed bytes; `src/server/chain.ts` speaks to TLS-verified Fulcrum-compatible providers, checks network checkpoints and observes transaction inclusion. WizardConnect keeps wallet signing in the browser and returns signed bytes; the server has no spending keys.
+### Safeguards built into the workflow
 
-```text
-Browser + WizardConnect ──review/sign──> customer or merchant wallet
-        │                                      │
-        │ JSON API                             └── signed BCH transaction
-        ▼                                                 │
-Next.js server ──atomic records──> PostgreSQL             ├── broadcast
-        │                                                 └── providers verify
-        └── public-safe resolution receipt <─────────────────┘
-```
+- **Exact accounting:** amounts use integer satoshis; refund approvals reserve value atomically against the original purchase.
+- **Merchant control:** signing happens in the merchant wallet. Transaction inputs, recipient, amount and change are checked against the reviewed intent.
+- **Replay and uncertain-broadcast handling:** transaction identity and signed bytes are saved before broadcast; uncertain attempts remain reserved, and recovery does not invent a replacement transfer.
+- **Privacy and access control:** merchant operations require authorization; private purchase links are capability-protected; public receipts omit customer reasons, contact details, session credentials and raw signed bytes.
 
-See [architecture notes](docs/ARCHITECTURE.md) for the transaction state machine, chain-provider limits, and database entities.
+[Architecture](docs/ARCHITECTURE.md) · [Security tests and threat boundaries](docs/SECURITY_TESTS.md) · [Payment-request cancellation safety](docs/PAYMENT_REQUEST_CANCELLATION.md)
 
 ## Run locally
 
-Requirements: Node.js **22.13+**, npm, and PostgreSQL 17 (or a compatible local PostgreSQL/Neon test instance). The default network is Chipnet. Never put a real spending key or recovery phrase in ReturnTail.
+Requires **Node.js 22.13+**, npm and a separate PostgreSQL database (PostgreSQL 17 is used in testing). The default BCH network is **Chipnet**.
 
 ```sh
-git clone https://github.com/sopskistar/returntail.git
-cd returntail
+git clone https://github.com/sopskistar/ReturnTail.git
+cd ReturnTail
 npm ci
 cp .env.example .env.local
 ```
 
-Set `DATABASE_URL` to an isolated local database and set a random `AUTH_SECRET` of at least 32 characters in `.env.local`. Do not point integration tests at production Neon. Then:
+Configure an **isolated development** `DATABASE_URL` and a randomly generated `AUTH_SECRET` of at least 32 characters in `.env.local`. Never put a seed phrase or wallet spending key in the app, and **never run fixture/integration tests against production Neon**.
 
 ```sh
 npm run db:migrate
 npm run dev
 ```
 
-Open `http://localhost:3000`. For the full validation suite, configure an isolated `RETURNTAIL_TEST_DATABASE_URL` and run:
+Open `http://localhost:3000`.
+
+For verification, point `RETURNTAIL_TEST_DATABASE_URL` to an isolated test database:
 
 ```sh
 npm run typecheck
@@ -128,22 +101,18 @@ npm run scan:secrets
 npm audit --audit-level=high
 ```
 
-Browser tests target localhost and may use clearly labeled fixtures. They do not sign or broadcast real BCH. See [deployment notes](docs/DEPLOYMENT.md) and [.env.example](.env.example) before configuring a local environment.
+The **November 21 release checks** reported **43 unit tests**, **90 isolated PostgreSQL tests**, a passing build, lint and typecheck, and **23/23 production smoke checks**. The latest browser run passed **19/20**; the remaining cancellation fixture was blocked by an external Chipnet provider DNS failure, not counted as a pass. These are dated results, not a claim that every production or wallet condition has been exhaustively tested.
 
-## Project links and release materials
+[Release report](docs/RELEASE_REPORT.md) · [Deployment guide](docs/DEPLOYMENT.md) · [Detailed test record](docs/SECURITY_TESTS.md)
 
-- **Live app:** [returntail.vercel.app](https://returntail.vercel.app)
-- **Judge walkthrough:** [returntail.vercel.app/guide](https://returntail.vercel.app/guide)
-- **Break It Lab:** [returntail.vercel.app/lab](https://returntail.vercel.app/lab)
-- **Public mainnet receipt:** [confirmed resolution](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02)
-- **Evidence index:** [/evidence](https://returntail.vercel.app/evidence) (the confirmed receipt is currently featured)
-- **Widget Factory presentation:** [existing published deck](https://docs.google.com/presentation/d/1dSwEQk5Qs9_TqOnJxOJmmFjK1PO3tGQLKaZ7u9cp12g/edit?usp=sharing), configured through `WIDGET_FACTORY_URL` and linked from the homepage banner.
-- **Demo video:** final public video link pending. Use the [scene-by-scene recording plan](docs/VIDEO_SCRIPT.md); the existing 45-second engineering preview is not the final hackathon demo.
+## Scope and attribution
 
-## Scope, provenance, and licenses
+ReturnTail currently supports one store per account, standard P2PKH BCH payments, bounded receiving-address discovery and provider-assisted verification. It does **not** run a full Bitcoin Cash proof-of-work node, provide email verification or password recovery, or prevent transfers made outside the application. A connected public key alone does not prove control of every derived address.
 
-The current release supports one store per account, standard P2PKH BCH, bounded receiving-address discovery, and daily scheduled reconciliation plus user-triggered refresh. It has no email verification or password recovery. Provider-assisted merkle/header checks depend on public infrastructure and are not a full node. Connection to a wallet or matching an advertised chain does not by itself prove control of every derived address.
+The mainnet result above is a **self-test**. It is not a claim of external customer adoption or an independent third-party security audit.
 
-The BCH BLAZE submission uses a self-test, not an external customer case. The earliest commit in this repository is dated November 17, 2026; that Git history does not establish when all prior work began. Disclose any earlier prototypes and changes accurately in the [submission checklist](docs/SUBMISSION.md). The app is MIT-licensed; WizardConnect is LGPL-3.0-or-later, and bundled fonts are OFL. See [third-party notices](THIRD_PARTY_NOTICES.md).
+Built for **BCH BLAZE 2026**. The repository's earliest public commit is dated November 17, 2026; see [submission provenance and checklist](docs/SUBMISSION.md) for honest disclosure of any earlier work. AI-assisted development and editing were used. The code is [MIT licensed](LICENSE); third-party packages and asset licenses are documented in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-AI tools assisted with implementation, code review, and documentation, including this release README. Automated fixture results are labeled as tests and are not presented as real-world customer performance.
+**[Live app](https://returntail.vercel.app) · [Mainnet proof](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02) · [Presentation](https://docs.google.com/presentation/d/1dSwEQk5Qs9_TqOnJxOJmmFjK1PO3tGQLKaZ7u9cp12g/edit?usp=sharing)**
+
+*Final demo video: public video URL to be added after publication.*
