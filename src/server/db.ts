@@ -1,5 +1,6 @@
 import { Pool, type PoolClient, type QueryResultRow } from 'pg';
 import { AppError } from '@/core/errors';
+import { databaseConnectionString } from './database-url';
 const globalDb = globalThis as unknown as { returntailPool?: Pool };
 export function pool(): Pool {
   if (!process.env.DATABASE_URL)
@@ -9,7 +10,7 @@ export function pool(): Pool {
       503,
     );
   return (globalDb.returntailPool ??= new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: databaseConnectionString(process.env.DATABASE_URL),
     max: 5,
     connectionTimeoutMillis: 7000,
     idleTimeoutMillis: 10000,
