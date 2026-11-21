@@ -55,3 +55,5 @@ Hallmark actual final rendered report: **0 FAIL,2 REFLEX,5 WARN; render ran**, s
 Impeccable final detector:0 primary findings,181 advisory token/type observations against the existing machine design snapshot. DESIGN.md owns the established system; scoped small-label/headline variants are documented. These advisories do not replace the screenshot and interaction review. The designer metadata drift was not expanded into an unrelated migration.
 
 The lab and player are genuine interactions but not transaction evidence. Native Paytaca0.27.3 index-zero control, Selene physical pairing/change/signing and the funded mainnet journey remain unverified.
+
+Hosted refinement verification at2026-11-21T04:35Z: releasefed4923 READY;12 public captures. Initial9 clean/3 Chromium ERR_NETWORK_CHANGED asset-load failures (wallet-check desktop/tablet, guide tablet); targeted retries all200/styled/no failed requests or page errors. Actual hosted mobile homepage, desktop wallet checker and live lab results screenshots opened and inspected. Lab actual200/401/401, no financial writes. Failed initial evidence retained; not represented as an all-clean first pass.
