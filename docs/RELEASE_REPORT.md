@@ -2,6 +2,10 @@
 
 ## Superseding update — independently reconciled mainnet journey
 
+### November 21 — final banner and evidence configuration check
+
+The production homepage already had `WIDGET_FACTORY_URL` and `EMBER_DONATION_ADDRESS` configured. Its rendered links point to the public Google Slides deck and GitHub repository; the displayed CashAddress decodes to `p2pkhWithTokens`. The public evidence page server-renders the receipt client with refund UUID `6c5fb204-f24e-4fa1-b944-d4ff710ecb02`, so `PUBLIC_PROOF_REFUND_ID` is configured. This supersedes the earlier missing-setting notes below. The deck URL responded HTTP 200; its slide contents still require human review. No Vercel variables were changed in this release.
+
 ### November 21 README and evidence audit
 
 The current working release adds an evidence-first README, the real production homepage screenshot, corrected proof/submission/video guidance, and accurate `/evidence` empty-state copy. It does not alter wallet behavior, migrations, or production records. Typecheck, lint, 43 unit tests, 90 isolated PostgreSQL tests, optimized production build, npm audit (zero high-severity findings), and secret-pattern scan passed. The optimized browser run passed 17/18; the cancellation/correction browser case could not complete its fresh-address check because the configured Chipnet provider DNS lookup failed and then timed out. Its fixture was local and remained unfunded. Exact results are in `SECURITY_TESTS.md`; this is not represented as a full browser-suite pass.

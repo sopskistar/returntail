@@ -4,7 +4,7 @@
 
 ReturnTail connects a Bitcoin Cash purchase to a customer’s refund request, a merchant’s decision, a wallet-authorized refund transaction, and a shareable record of what happened. BCH goes directly between wallets: ReturnTail does not custody funds or hold spending keys.
 
-[Live app](https://returntail.vercel.app) · [Judge walkthrough](https://returntail.vercel.app/guide) · [Break It Lab](https://returntail.vercel.app/lab) · [Public mainnet receipt](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02) · [Evidence page](https://returntail.vercel.app/evidence) · [Source](https://github.com/sopskistar/returntail)
+[Live app](https://returntail.vercel.app) · [Judge walkthrough](https://returntail.vercel.app/guide) · [Break It Lab](https://returntail.vercel.app/lab) · [Widget Factory presentation](https://docs.google.com/presentation/d/1dSwEQk5Qs9_TqOnJxOJmmFjK1PO3tGQLKaZ7u9cp12g/edit?usp=sharing) · [Public mainnet receipt](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02) · [Evidence page](https://returntail.vercel.app/evidence) · [Source](https://github.com/sopskistar/ReturnTail)
 
 > **For judges:** the walkthrough and Break It Lab require no wallet connection or payment. They are a guided explanation and read-only hosted security probes; neither creates a transaction. The real mainnet self-test and its independent transaction links are documented below.
 
@@ -47,7 +47,7 @@ The [public-safe resolution receipt](https://returntail.vercel.app/resolution/6c
 
 The user reports using Selene for the 10,000-sat payment and Paytaca to authorize the 4,000-sat refund. The user also reports that a 7,000-sat request was refused because the 4,000-sat refund had reserved the available balance, and was then rejected. The merchant’s private audit rows for those decisions were not independently retrieved in this session. ReturnTail’s public receipt does not prove that 7,000-sat decision. See the [evidence ledger](docs/MAINNET_PROOF.md) for the sources, timestamps, discrepancy, and remaining application-record check.
 
-`/evidence` can feature this receipt when the existing Vercel project has `PUBLIC_PROOF_REFUND_ID` set to the verified **refund database UUID** above. It is not the txid. Until that setting is added and the deployment is checked, use the direct receipt URL above.
+The existing Vercel production configuration currently features this receipt on `/evidence` using `PUBLIC_PROOF_REFUND_ID=6c5fb204-f24e-4fa1-b944-d4ff710ecb02`, the verified **refund database UUID**, not a txid. The public page and logged-out receipt endpoint were checked after deployment.
 
 ## A no-payment judge walkthrough
 
@@ -136,8 +136,8 @@ Browser tests target localhost and may use clearly labeled fixtures. They do not
 - **Judge walkthrough:** [returntail.vercel.app/guide](https://returntail.vercel.app/guide)
 - **Break It Lab:** [returntail.vercel.app/lab](https://returntail.vercel.app/lab)
 - **Public mainnet receipt:** [confirmed resolution](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02)
-- **Evidence index:** [/evidence](https://returntail.vercel.app/evidence) (set `PUBLIC_PROOF_REFUND_ID=6c5fb204-f24e-4fa1-b944-d4ff710ecb02` in the existing Vercel project to feature the receipt there)
-- **Widget Factory presentation:** add the URL of the existing published deck through `WIDGET_FACTORY_URL`; the deck has not been replaced or recreated.
+- **Evidence index:** [/evidence](https://returntail.vercel.app/evidence) (the confirmed receipt is currently featured)
+- **Widget Factory presentation:** [existing published deck](https://docs.google.com/presentation/d/1dSwEQk5Qs9_TqOnJxOJmmFjK1PO3tGQLKaZ7u9cp12g/edit?usp=sharing), configured through `WIDGET_FACTORY_URL` and linked from the homepage banner.
 - **Demo video:** final public video link pending. Use the [scene-by-scene recording plan](docs/VIDEO_SCRIPT.md); the existing 45-second engineering preview is not the final hackathon demo.
 
 ## Scope, provenance, and licenses

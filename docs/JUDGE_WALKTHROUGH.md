@@ -16,4 +16,4 @@
 - Refund: [Selene Explorer](https://explorer.selene.cash/tx/c4ce3d46aa2f14c81a9a6fb8b12dcde6e8e9678539f1e20d060073cce670b85b?network=mainnet) · [Blockchair](https://blockchair.com/bitcoin-cash/transaction/c4ce3d46aa2f14c81a9a6fb8b12dcde6e8e9678539f1e20d060073cce670b85b)
 - Full verification, transaction times and block/confirmation snapshot: [MAINNET_PROOF.md](MAINNET_PROOF.md).
 
-Do not enter a customer access link or merchant workspace in a public judging session. Do not sign or broadcast BCH for the walkthrough. To inspect the live evidence index as a featured card, set Vercel Production `PUBLIC_PROOF_REFUND_ID` to `6c5fb204-f24e-4fa1-b944-d4ff710ecb02` and redeploy; the direct receipt link above is already public.
+Do not enter a customer access link or merchant workspace in a public judging session. Do not sign or broadcast BCH for the walkthrough. The evidence index currently features refund UUID `6c5fb204-f24e-4fa1-b944-d4ff710ecb02`; the direct receipt link above is also public.

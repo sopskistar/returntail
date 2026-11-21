@@ -14,7 +14,7 @@ In the existing Vercel project, set the **Production** environment variable belo
 PUBLIC_PROOF_REFUND_ID=6c5fb204-f24e-4fa1-b944-d4ff710ecb02
 ```
 
-Open `/evidence` in a logged-out browser and verify that it features the confirmed receipt. The direct route currently works without that setting; the evidence index remains in its unconfigured state until the setting is deployed.
+This UUID is currently configured in Vercel Production. Open `/evidence` logged out after the latest deployment and confirm the receipt loads. The direct receipt URL remains available if the evidence page is temporarily unavailable.
 
 ## Verify application decisions in the existing merchant account
 
@@ -22,7 +22,7 @@ The public receipt shows the confirmed 4,000-sat resolution state and chain asso
 
 ## Complete the presentation and video
 
-- Add the public URL of the **existing** Widget Factory Google Slides deck as Production `WIDGET_FACTORY_URL`. Do not create or replace the deck. Confirm the homepage link points to the same deck.
+- The existing deck is currently linked from the production homepage banner: https://docs.google.com/presentation/d/1dSwEQk5Qs9_TqOnJxOJmmFjK1PO3tGQLKaZ7u9cp12g/edit?usp=sharing. Confirm it is the intended public deck; do not create or replace it.
 - Record a concise final demonstration using the public receipt, real chain explorer records, and current application screens. Use `VIDEO_SCRIPT.md` as the capture checklist. If there is no actual wallet recording, say so; do not recreate a signing UI.
 - The existing `artifacts/video/ReturnTail-preview.mp4` is an engineering preview from isolated QA screens, not the final mainnet demo.
 

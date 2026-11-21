@@ -1,6 +1,6 @@
 # Widget Factory deck — content for the existing Google Slides presentation
 
-The existing deck is the presentation to finish. Do not create or substitute another deck. Its public URL has not been provided to this workspace, so its slides and `WIDGET_FACTORY_URL` cannot be edited or verified here. Use the organizer's [Widget Factory template](https://docs.google.com/presentation/d/1Yfuk9CJkf4U9M_WukcELhumWgj3Ak6345Ewy8hSp-Hk/edit?usp=sharing) as required while preserving the existing deck's design. A damaged-parcel story is hypothetical framing, not this self-test.
+The existing presentation currently linked from the production homepage is [the public Google Slides deck](https://docs.google.com/presentation/d/1dSwEQk5Qs9_TqOnJxOJmmFjK1PO3tGQLKaZ7u9cp12g/edit?usp=sharing). Its URL returned HTTP 200 and is present in the live banner; review the slides directly before submission. Do not create or substitute another deck. The organizer's [Widget Factory template](https://docs.google.com/presentation/d/1Yfuk9CJkf4U9M_WukcELhumWgj3Ak6345Ewy8hSp-Hk/edit?usp=sharing) is the required format reference. A damaged-parcel story is hypothetical framing, not this self-test.
 
 ## Recommended compact story
 
@@ -17,6 +17,6 @@ The existing deck is the presentation to finish. Do not create or substitute ano
 
 - Use the exact corrected payment hash and refund hash in [MAINNET_PROOF.md](MAINNET_PROOF.md), and retain both Selene and Blockchair links.
 - Present the confirmation counts as an observed snapshot, not a current guarantee; explorer counts change as blocks arrive.
-- Use the refund database UUID `6c5fb204-f24e-4fa1-b944-d4ff710ecb02` for the logged-out public receipt and for `PUBLIC_PROOF_REFUND_ID`.
+- The existing production `PUBLIC_PROOF_REFUND_ID` is the refund database UUID `6c5fb204-f24e-4fa1-b944-d4ff710ecb02`; confirm the logged-out receipt remains featured after release.
 - Confirm the approved 4,000 and rejected 7,000 outcomes in the authenticated production order/accounting trail.
 - Include the final commit SHA and only current, reproducible test totals. Do not copy old totals from prior release reports.

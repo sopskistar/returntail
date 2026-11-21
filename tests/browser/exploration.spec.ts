@@ -24,6 +24,62 @@ test('resolution chapters are keyboard-operable explanations without financial r
   await expect(page.locator('dialog[open]')).toHaveCount(0);
 });
 
+test('homepage shows the competition banner immediately below navigation', async ({ page }) => {
+  await page.goto('/');
+  const banner = page.locator('.competition');
+  await expect(banner).toBeVisible();
+  await expect(banner.getByRole('heading', { name: 'Build. Inspect. Resolve.' })).toBeVisible();
+  await expect(banner.getByRole('link', { name: 'GitHub repository' })).toHaveAttribute(
+    'href',
+    'https://github.com/sopskistar/ReturnTail',
+  );
+  await expect(banner.locator('.competition-donation')).toBeVisible();
+  const presentation = banner.getByRole('link', { name: 'Widget Factory Presentation' });
+  if (await presentation.count()) {
+    const url = new URL((await presentation.getAttribute('href'))!);
+    expect(url.protocol).toBe('https:');
+    expect(url.hostname).toBe('docs.google.com');
+    expect(url.pathname).toMatch(/^\/presentation\/d\/[A-Za-z0-9_-]+/);
+  } else {
+    await expect(banner.getByText('Presentation link not configured')).toBeVisible();
+  }
+  const donation = banner.locator('.competition-donation code');
+  if (await donation.count()) {
+    await expect(donation).toHaveText(/^bitcoincash:z/);
+  } else {
+    await expect(banner.getByText('CashTokens address not configured')).toBeVisible();
+  }
+  expect(
+    await page.evaluate(() => {
+      const header = document.querySelector('.site-header')!.getBoundingClientRect();
+      const ribbon = document.querySelector('.competition')!.getBoundingClientRect();
+      const hero = document.querySelector('.hero')!.getBoundingClientRect();
+      return ribbon.top >= header.bottom && ribbon.bottom <= hero.top;
+    }),
+  ).toBe(true);
+});
+
+test('financial lab evidence distinguishes chain proof, reported decisions and isolated tests', async ({ page }) => {
+  await page.goto('/lab');
+  const evidence = page.locator('.invariant-evidence');
+  await expect(evidence.getByRole('heading', { name: 'Financial safeguards, with evidence.' })).toBeVisible();
+  for (const title of ['Cumulative refund limit', 'Duplicate processing protection', 'Merchant authorization']) {
+    const card = evidence.locator('.invariant-card').filter({ has: page.getByRole('heading', { name: title, exact: true }) });
+    await expect(card).toBeVisible();
+    for (const label of ['DO', 'SEE', 'PROOF']) await expect(card.getByText(label, { exact: true })).toBeVisible();
+  }
+  await expect(evidence.getByRole('link', { name: 'Public confirmed receipt' })).toHaveAttribute(
+    'href',
+    'https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02',
+  );
+  await expect(evidence.getByRole('link', { name: 'isolated cumulative-limit assertion' })).toHaveAttribute(
+    'href',
+    'https://github.com/sopskistar/ReturnTail/blob/main/tests/db/refunds.test.ts#L300',
+  );
+  await expect(evidence.getByText(/That decision is application evidence/)).toBeVisible();
+  await expect(page.locator('.lab-check')).toHaveCount(3);
+});
+
 test('lab probes actual local API boundaries with no cookies and no writes', async ({ page }) => {
   const calls: { method: string; cookie?: string; path: string }[] = [];
   page.on('request', req => { if (req.url().includes('/api/')) calls.push({ method: req.method(), cookie: req.headers().cookie, path: new URL(req.url()).pathname }); });

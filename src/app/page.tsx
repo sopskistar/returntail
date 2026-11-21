@@ -12,6 +12,7 @@ export default function Home() {
   return (
     <>
       <Header />
+      <CompetitionBanner />
       <main id="main">
         <section className="hero">
           <div className="container hero-inner">
@@ -130,7 +131,6 @@ export default function Home() {
           </div>
         </section>
         <section className="inspection-section container"><div><h2>Don’t take a status label on trust.</h2><p>Inspect the running application’s access boundaries and the tests behind the refund ledger. No wallet or funds required.</p></div><Link className="button secondary" href="/lab">Open Break It Lab <ArrowRight size={18} /></Link></section>
-        <CompetitionBanner />
       </main>
       <Footer />
     </>

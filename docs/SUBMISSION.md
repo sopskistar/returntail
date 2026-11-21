@@ -33,8 +33,8 @@ ReturnTail cannot prevent extra transfers made outside the application. A connec
 - Break It Lab: https://returntail.vercel.app/lab
 - Public resolution receipt: https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02
 - Public source: https://github.com/sopskistar/returntail
-- Evidence index: https://returntail.vercel.app/evidence (feature the receipt by setting Production `PUBLIC_PROOF_REFUND_ID=6c5fb204-f24e-4fa1-b944-d4ff710ecb02` and redeploying)
-- Existing Widget Factory deck: add the existing public Slides URL; do not create a replacement
+- Evidence index: https://returntail.vercel.app/evidence (currently configured to feature refund record `6c5fb204-f24e-4fa1-b944-d4ff710ecb02`)
+- Existing Widget Factory deck: https://docs.google.com/presentation/d/1dSwEQk5Qs9_TqOnJxOJmmFjK1PO3tGQLKaZ7u9cp12g/edit?usp=sharing (also configured in the homepage banner)
 - Final demo video: add the published recording URL when finished; the current engineering preview is not a final demo
 - EMBER2026 donation: use the token-compatible CashAddress displayed on the live homepage. Do not send a donation as a test.
 
@@ -45,9 +45,9 @@ The earliest commit in this repository is dated November 17, within the November
 ## Participant checklist — verify personally
 
 - [ ] Confirm the existing DoraHacks participant/project entry and registration status.
-- [ ] Complete the Widget Factory-based presentation using the already-created deck; publish it and set `WIDGET_FACTORY_URL` to its public URL.
+- [ ] Review the existing Widget Factory deck for final content and confirm it is publicly viewable; do not replace it.
 - [ ] Record and inspect the final demo using [VIDEO_SCRIPT.md](VIDEO_SCRIPT.md). Do not fabricate a wallet signature or private order screen.
-- [ ] If using the `/evidence` index, set `PUBLIC_PROOF_REFUND_ID` to the verified refund database UUID above, redeploy, and check it logged out.
+- [ ] Check that `/evidence` still features the receipt when logged out.
 - [ ] Confirm preparation-stream attendance/roll call and the project’s BCH BLAZE Telegram verification in the participant’s own account/chat. These are not evidenced here.
 - [ ] Recheck the current event instructions for required banner content, video/media format, public links, and other submission fields.
 - [ ] Submit manually before the deadline shown on the official event form and save the confirmation.

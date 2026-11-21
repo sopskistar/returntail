@@ -37,13 +37,13 @@ The logged-out public API `GET https://returntail.vercel.app/api/resolutions/6c5
 
 The receipt response contains only the public-safe projection: identifiers, order reference, network, amounts/output, fees, confirmation/block metadata, and provider-proof metadata. It does not include raw transaction bytes, destination addresses, customer reason/email, private customer capability, or merchant session. The endpoint was queried without authentication. The direct [public resolution receipt](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02) remains the judge-facing proof link.
 
-To feature that same record on `/evidence`, set this exact value in the existing Vercel project’s **Production** environment variable `PUBLIC_PROOF_REFUND_ID`:
+The existing Vercel **Production** configuration currently features this record on `/evidence` using `PUBLIC_PROOF_REFUND_ID`:
 
 ```text
 6c5fb204-f24e-4fa1-b944-d4ff710ecb02
 ```
 
-Then redeploy and open `https://returntail.vercel.app/evidence` in a logged-out browser. The current deployment’s `/evidence` still shows its unconfigured state until that variable is set. Do not use either transaction hash as the variable value.
+The logged-out production page rendered the configured receipt after deployment. If the setting is ever removed, restore this UUID (not either transaction hash), redeploy, and check the page logged out.
 
 ## Application decisions that need the merchant record
 
