@@ -42,11 +42,23 @@ export default async function Evidence() {
           <ResolutionClient id={proofId} />
         ) : (
           <section className="evidence-empty">
-            <h2>Mainnet proof is not yet published.</h2>
+            <h2>The verified mainnet receipt is available.</h2>
             <p>
-              A physical-wallet mainnet purchase and partial refund have been reported. The
-              independently checked transaction evidence and public receipt are not available here
-              yet. See the proof ledger for what is verified and what still needs reconciliation.
+              The 10,000-satoshi purchase and 4,000-satoshi refund were independently matched to
+              BCH mainnet transaction records. Open the public-safe receipt to compare both
+              transactions and their block evidence.
+            </p>
+            <a
+              href="https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02"
+              className="text-link"
+            >
+              Open the confirmed resolution receipt
+              <ArrowUpRight size={16} />
+            </a>
+            <p className="fine" style={{ marginTop: 18 }}>
+              To feature the receipt on this page, set Production{' '}
+              <code>PUBLIC_PROOF_REFUND_ID=6c5fb204-f24e-4fa1-b944-d4ff710ecb02</code> in the
+              existing Vercel project and redeploy.
             </p>
             <a
               href="https://github.com/sopskistar/returntail/blob/main/docs/MAINNET_PROOF.md"
