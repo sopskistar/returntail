@@ -199,7 +199,9 @@ export async function createOrder(
       const amount = sats(input.amount),
         id = randomUUID(),
         cap = token(),
-        firstIndex = s.address_index;
+        // Paytaca 0.27.3 reserves receive 0/0 for message encryption and hides it
+        // from its normal Receive screen. Existing records are never reallocated.
+        firstIndex = Math.max(1, s.address_index);
       invariant(
         firstIndex < 10000,
         'ADDRESS_LIMIT',
@@ -488,6 +490,10 @@ export type WalletSource = {
   changeIndex: number;
   indices: number[];
 };
+function requireDisplayableReceiveIndex(index: number) {
+  invariant(index !== 0, 'RECEIVE_INDEX_UNVERIFIED',
+    'Funding paused: receive index 0 cannot be inspected in Paytaca 0.27.3. This request is preserved. Do not send BCH to it.', 409);
+}
 export async function prepareAttempt(
   id: string,
   actor: { merchantId: string } | { capability: string },
@@ -504,6 +510,7 @@ export async function prepareAttempt(
     403,
   );
   const purpose = refundId ? 'refund' : 'payment';
+  if (!refundId) requireDisplayableReceiveIndex(o.address_index);
   if (!refundId) await requireFreshAllocation(id);
   if (refundId) {
     const s = await storeFor(pool(), 'merchantId' in actor ? actor.merchantId : '');
@@ -645,6 +652,9 @@ export async function submitSigned(
       );
       return;
     }
+    // Saved signed bytes must remain recoverable, including legacy index-zero
+    // attempts. Only NEW authorization is blocked; reconciliation is unchanged.
+    if (locked.kind === 'payment') requireDisplayableReceiveIndex(o.address_index);
     invariant(
       locked.state === 'awaiting_signature' && new Date(locked.expires_at).getTime() > Date.now(),
       'ATTEMPT_EXPIRED',

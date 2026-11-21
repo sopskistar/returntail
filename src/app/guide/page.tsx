@@ -27,7 +27,7 @@ export default function Guide() {
         </div>
         <p className="fine">
           Before funding the journey, follow the{' '}
-          <a className="text-link" href="https://github.com/sopskistar/returntail/blob/main/docs/OWNER_CHECKLIST.md">
+          <a className="text-link" href="/wallet-check">
             Paytaca and Selene wallet preflight
           </a>. Check wallet versions and the merchant’s receiving address first.
         </p>
@@ -39,7 +39,7 @@ export default function Guide() {
               <p>
                 Create a merchant account, connect a WizardConnect-enabled BCH wallet, save its
                 public receive key, then create a payment request. Before sharing the private link,
-                match its receiving address and receive index in the merchant’s physical wallet.
+                compare its exact destination in the native wallet. Index-zero requests must stay unfunded: Paytaca 0.27.3 hides that index.
               </p>
             </div>
           </li>

@@ -202,3 +202,28 @@ describe('integer accounting and CSRF', () => {
     ).toThrow('JSON');
   });
 });
+
+describe('native address comparison (public isolated fixtures)', () => {
+  it('finds the native positive receive index without a wallet or network request', async () => {
+    const { findReceiveIndex } = await import('../src/client/address-check');
+    expect(await findReceiveIndex(xpub, deriveAddress(xpub, 3, 'chipnet'), 'chipnet', 8)).toBe(3);
+    expect(await findReceiveIndex(xpub, deriveAddress(xpub, 9, 'chipnet'), 'chipnet', 8)).toBeNull();
+  });
+  it('normalizes standard and token-aware encodings by locking script', async () => {
+    const { lockingBytecodeToCashAddress } = await import('@bitauth/libauth');
+    const { sameDestination } = await import('../src/client/address-check');
+    const encoded = lockingBytecodeToCashAddress({ bytecode: addressScript(address, 'chipnet'), prefix: 'bchtest', tokenSupport: true });
+    expect(typeof encoded).not.toBe('string');
+    if (typeof encoded === 'string') throw Error(encoded);
+    expect(encoded.address).not.toBe(address);
+    expect(sameDestination(address, encoded.address, 'chipnet')).toBe(true);
+    expect(sameDestination(address, destination, 'chipnet')).toBe(false);
+    expect(() => sameDestination(address, address, 'mainnet')).toThrow('mainnet');
+  });
+  it('aborts local scanning on disconnect and rejects malformed addresses', async () => {
+    const { findReceiveIndex } = await import('../src/client/address-check');
+    const controller = new AbortController(); controller.abort();
+    await expect(findReceiveIndex(xpub, address, 'chipnet', 8, controller.signal)).rejects.toThrow();
+    await expect(findReceiveIndex(xpub, 'invalid', 'chipnet')).rejects.toThrow();
+  });
+});

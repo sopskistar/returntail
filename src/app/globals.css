@@ -2220,3 +2220,15 @@ tbody tr:hover {
     display: none;
   }
 }
+
+/* Private unfunded wallet comparison; same operational language as checkout. */
+.address-checker { display: grid; gap: var(--space-4); }
+.address-checker h2 { font-size: 24px; }
+.address-checker form { display: grid; gap: var(--space-3); }
+.address-checker .wallet-button { justify-self: start; }
+.comparison-result:empty { display: none; }
+.comparison-result { padding: var(--space-4); background: var(--color-ground); overflow-wrap: anywhere; }
+.preflight-notes { margin-top: var(--space-7); }
+.preflight-notes h2 { margin: var(--space-6) 0 var(--space-4); }
+.preflight-notes ol { padding-left: 24px; }
+.preflight-notes li { margin: var(--space-4) 0; }

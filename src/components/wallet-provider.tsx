@@ -10,6 +10,7 @@ import { deriveAddress } from '@/core/bch';
 import { signPlan, walletSource } from '@/client/wallet-adapter';
 import { walletError } from '@/core/errors';
 import { Check, Copy, Unplug, Wallet, X } from 'lucide-react';
+import Link from 'next/link';
 const storage = {
   getItem: (k: string) => (typeof window === 'undefined' ? null : window.sessionStorage.getItem(k)),
   setItem: (k: string, v: string) => {
@@ -158,7 +159,7 @@ export function WalletInfo() {
           <p>
             {address ? (
               <>
-                <span className="label">First receive address</span>
+                <span className="label">Derived receive index zero · not the current Receive screen</span>
                 <code className="wrap">{address}</code>
               </>
             ) : (
@@ -169,6 +170,7 @@ export function WalletInfo() {
             Connection reveals public address paths. It does not prove ownership. A valid, observed
             spend can prove control of its source address.
           </p>
+          <Link className="text-link" href="/wallet-check">Compare your native Receive address before funding</Link>
         </>
       )}
       {wc.error && (

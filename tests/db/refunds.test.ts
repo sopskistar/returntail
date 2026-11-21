@@ -4,7 +4,7 @@ import { Pool } from 'pg';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { binToHex } from '@bitauth/libauth';
-import { addressScript, deriveAddress } from '../../src/core/bch';
+import { addressScript, buildPlan, deriveAddress } from '../../src/core/bch';
 import { pool, transaction } from '../../src/server/db';
 import {
   capabilityHash,
@@ -16,6 +16,7 @@ import {
 import * as service from '../../src/server/service';
 import type { Chain, Observation } from '../../src/server/chain';
 import { xpub, address, destination, purchaseFixture, signFixture } from '../fixtures';
+const orderAddress = deriveAddress(xpub, 1, 'chipnet');
 const schema = 'returntail_security_test';
 let admin: Pool;
 let merchantId: string, otherId: string, storeId: string, orderId: string, cap: string;
@@ -57,12 +58,12 @@ beforeEach(async () => {
     [merchantId, otherId],
   );
   await pool().query(
-    "INSERT INTO stores(id,merchant_id,name,network,receive_xpub,address_index) VALUES($1,$2,'Isolated test store','chipnet',$3,1)",
+    "INSERT INTO stores(id,merchant_id,name,network,receive_xpub,address_index) VALUES($1,$2,'Isolated test store','chipnet',$3,2)",
     [storeId, merchantId, xpub],
   );
   await pool().query(
-    "INSERT INTO orders(id,store_id,capability_hash,title,reference,network,address,address_index,amount,expires_at) VALUES($1,$2,$3,'Fixture purchase','RT-TEST','chipnet',$4,0,10000,now()+interval '1 hour')",
-    [orderId, storeId, capabilityHash(cap), address],
+    "INSERT INTO orders(id,store_id,capability_hash,title,reference,network,address,address_index,amount,expires_at) VALUES($1,$2,$3,'Fixture purchase','RT-TEST','chipnet',$4,1,10000,now()+interval '1 hour')",
+    [orderId, storeId, capabilityHash(cap), orderAddress],
   );
   await service.audit(pool(), storeId, orderId, 'order.created', 'ISOLATED_FIXTURE', {
     receivingHistoryChecked: true,
@@ -83,7 +84,7 @@ function fixtureChain(
     blockHash?: string;
   } = {},
 ): Chain {
-  const purchase = purchaseFixture(options.recipient ?? address, options.amount ?? 10000);
+  const purchase = purchaseFixture(options.recipient ?? orderAddress, options.amount ?? 10000);
   const observed: Observation = {
     network: options.wrongNetwork ? 'mainnet' : 'chipnet',
     ...purchase,
@@ -160,7 +161,7 @@ describe('purchase and private capability boundaries', () => {
     );
   });
   it('rejects wrong recipient evidence', async () => {
-    const p = fixtureChain({ recipient: destination });
+    const p = fixtureChain({ recipient: address });
     const ids = await p.history(address, 'chipnet');
     await expect(service.verifyPurchase(orderId, { capability: cap }, ids[0], p)).rejects.toThrow(
       'output',
@@ -582,18 +583,18 @@ describe('new order address freshness (isolated provider history)', () => {
   });
   it('skips an address with old history and exposes the allocated receive index', async () => {
     const p = fixtureChain();
-    p.history = async a => a === deriveAddress(xpub, 1, 'chipnet') ? ['ab'.repeat(32)] : [];
+    p.history = async a => a === deriveAddress(xpub, 2, 'chipnet') ? ['ab'.repeat(32)] : [];
     const result = await service.createOrder(merchantId, input, randomUUID(), p);
     const order = await service.orderDetail(result.id, { merchantId });
-    expect(order.addressIndex).toBe(2);
-    expect(order.address).toBe(deriveAddress(xpub, 2, 'chipnet'));
-    expect((await pool().query('SELECT address_index FROM stores WHERE id=$1', [storeId])).rows[0].address_index).toBe(3);
+    expect(order.addressIndex).toBe(3);
+    expect(order.address).toBe(deriveAddress(xpub, 3, 'chipnet'));
+    expect((await pool().query('SELECT address_index FROM stores WHERE id=$1', [storeId])).rows[0].address_index).toBe(4);
   });
   it('refuses an exhausted receive range without advancing the counter or creating an order', async () => {
     const p = fixtureChain();
     p.history = async () => ['ab'.repeat(32)];
     await expect(service.createOrder(merchantId, input, randomUUID(), p)).rejects.toThrow('already have history');
-    expect((await pool().query('SELECT address_index FROM stores WHERE id=$1', [storeId])).rows[0].address_index).toBe(1);
+    expect((await pool().query('SELECT address_index FROM stores WHERE id=$1', [storeId])).rows[0].address_index).toBe(2);
     expect((await pool().query('SELECT count(*) FROM orders')).rows[0].count).toBe('1');
   });
   it('fails closed and rolls back when freshness cannot be checked', async () => {
@@ -601,7 +602,7 @@ describe('new order address freshness (isolated provider history)', () => {
     p.history = async () => { throw new Error('ISOLATED provider unavailable'); };
     await expect(service.createOrder(merchantId, input, randomUUID(), p)).rejects.toThrow('unavailable');
     expect((await pool().query('SELECT count(*) FROM orders')).rows[0].count).toBe('1');
-    expect((await pool().query('SELECT address_index FROM stores WHERE id=$1', [storeId])).rows[0].address_index).toBe(1);
+    expect((await pool().query('SELECT address_index FROM stores WHERE id=$1', [storeId])).rows[0].address_index).toBe(2);
   });
   it('returns the same capability on an idempotent retry without allocating or querying again', async () => {
     const p = fixtureChain();
@@ -621,6 +622,48 @@ describe('new order address freshness (isolated provider history)', () => {
     ]);
     const orders = await Promise.all(results.map(r => service.orderDetail(r.id, { merchantId })));
     expect(new Set(orders.map(o => o.address)).size).toBe(2);
-    expect(orders.map(o => o.addressIndex).sort()).toEqual([1, 2]);
+    expect(orders.map(o => o.addressIndex).sort()).toEqual([2, 3]);
+  });
+});
+
+
+describe('Paytaca index-zero funding gate (isolated PostgreSQL)', () => {
+  const source = { xpub, changeXpub: xpub, changeIndex: 2, indices: [0] };
+  async function legacy() {
+    await pool().query('UPDATE orders SET address=$2,address_index=0 WHERE id=$1', [orderId, address]);
+  }
+  it('never allocates zero even when an existing store counter is zero', async () => {
+    await legacy();
+    await pool().query('UPDATE stores SET address_index=0 WHERE id=$1', [storeId]);
+    const p = fixtureChain(); p.history = async () => [];
+    const created = await service.createOrder(merchantId, { title: 'Isolated positive receive', amount: 10000 }, randomUUID(), p);
+    expect((await service.orderDetail(created.id, { merchantId })).addressIndex).toBe(1);
+  });
+  it('blocks preparation without modifying the preserved request or contacting funding providers', async () => {
+    await legacy();
+    const before = (await pool().query('SELECT * FROM orders WHERE id=$1', [orderId])).rows[0];
+    const p = fixtureChain(); p.utxos = vi.fn(p.utxos);
+    await expect(service.prepareAttempt(orderId, { capability: cap }, source, randomUUID(), undefined, p)).rejects.toThrow('Funding paused');
+    expect(p.utxos).not.toHaveBeenCalled();
+    expect((await pool().query('SELECT * FROM orders WHERE id=$1', [orderId])).rows[0]).toEqual(before);
+    expect((await pool().query('SELECT * FROM attempts')).rows).toHaveLength(0);
+  });
+  it('blocks new signed submission but permits recovery of identical durably saved bytes', async () => {
+    await legacy();
+    const p = fixtureChain({ missing: true });
+    const inputs = await p.utxos(address, 'chipnet', 'receive', 0);
+    const plan = buildPlan(inputs, address, 10000, deriveAddress(xpub, 2, 'chipnet'), 'chipnet');
+    const raw = signFixture(plan); const id = randomUUID();
+    await pool().query("INSERT INTO attempts(id,order_id,kind,network,state,plan,expires_at) VALUES($1,$2,'payment','chipnet','awaiting_signature',$3,now()+interval '1 hour')", [id, orderId, plan]);
+    p.broadcast = vi.fn(p.broadcast);
+    await expect(service.submitSigned(id, { capability: cap }, raw, p)).rejects.toThrow('Funding paused');
+    expect(p.broadcast).not.toHaveBeenCalled();
+    expect((await pool().query('SELECT raw_tx FROM attempts WHERE id=$1', [id])).rows[0].raw_tx).toBeNull();
+    const { txid } = await import('../../src/core/bch');
+    await pool().query("UPDATE attempts SET raw_tx=$2,txid=$3,state='broadcast_unknown' WHERE id=$1", [id, raw, txid(raw)]);
+    const recovered = await service.submitSigned(id, { capability: cap }, raw, p);
+    expect(p.broadcast).toHaveBeenCalledWith(raw, 'chipnet');
+    expect(recovered.txid).toBe(txid(raw));
+    expect((await service.orderDetail(orderId, { capability: cap })).addressIndex).toBe(0);
   });
 });

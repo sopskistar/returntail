@@ -17,6 +17,7 @@ import { explorer } from '@/core/bch';
 import { useWallet, WalletInfo } from './wallet-provider';
 import { StateTrail, Status } from './status';
 import { Loading, ServiceError } from './workspace-client';
+import { AddressChecker } from './address-checker';
 export function OrderClient({ id, merchant = false }: { id: string; merchant?: boolean }) {
   const [order, setOrder] = useState<OrderDetail | null>(null),
     [error, setError] = useState(''),
@@ -118,6 +119,8 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
   }
   async function authorize(a: AttemptView) {
     await run(`sign-${a.id}`, async () => {
+      if (a.kind === 'payment' && order?.addressIndex === 0 && !a.txid)
+        throw new Error('Funding paused: Paytaca 0.27.3 cannot display this request’s index-zero destination. Do not authorize payment.');
       const storageKey = `returntail-signed-${a.id}`;
       let raw = sessionStorage.getItem(storageKey);
       if (!raw) {
@@ -226,6 +229,7 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
         <ServiceError error="This purchase belongs to another network. Do not sign with the current wallet." />
       )}
       {!receivingChecked && <ServiceError error="This request predates receiving-address checks. Ask the merchant for a new payment link before paying; existing transfers need manual review." />}
+      {order.addressIndex === 0 && order.state === 'awaiting_payment' && <div className="alert warning" role="alert">Funding paused. This preserved request uses receive index zero, which Paytaca 0.27.3 cannot display in Receive. Do not send BCH to this address. <Link className="text-link" href="/wallet-check">Read the unfunded preflight</Link>.</div>}
       <div className={`detail-grid ${merchant ? 'merchant-flow' : 'customer-flow'}`}>
         <div className="stack purchase-stack">
           <section className="panel">
@@ -272,8 +276,8 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
               </dl>
               {merchant && order.state === 'awaiting_payment' && (
                 <p className="fine">
-                  Before sharing this request, match this address and receive index in your
-                  physical wallet. Public-key derivation alone is not proof of wallet control.
+                  Before sharing this request, compare the exact destination with your native
+                  wallet. Public-key derivation alone is not proof of wallet control.
                 </p>
               )}
               {order.payment && (
@@ -385,6 +389,7 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
           </section>
         </div>
         <aside className="stack purchase-actions">
+          {merchant && order.state === 'awaiting_payment' && <div className="panel panel-body"><AddressChecker address={order.address} index={order.addressIndex} /></div>}
           {!merchant && order.state === 'awaiting_payment' && (
             <section className="panel">
               <div className="panel-heading">
@@ -410,7 +415,7 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
                 ) : (
                   <button
                     className="button"
-                    disabled={!!busy || wc.state !== 'connected' || !receivingChecked}
+                    disabled={!!busy || wc.state !== 'connected' || !receivingChecked || order.addressIndex === 0}
                     onClick={() => prepare()}
                   >
                     <Wallet size={16} />
