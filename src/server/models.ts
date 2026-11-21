@@ -14,6 +14,7 @@ export type Order = {
   state: string;
   expires_at: Date;
   created_at: Date;
+  cancellation_review_required?: boolean;
 };
 export type Store = {
   id: string;

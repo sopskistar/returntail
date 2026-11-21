@@ -81,8 +81,12 @@ async function requireFreshAllocation(id: string) {
     "SELECT 1 FROM audit_events WHERE order_id=$1 AND action='order.created' AND detail->>'receivingHistoryChecked'='true' LIMIT 1",
     [id],
   );
-  invariant(checked.rows.length, 'RECEIVE_REVIEW_REQUIRED',
-    'This request predates receiving-address checks. Ask the merchant for a new payment request before paying. Any existing transfer needs manual review.', 409);
+  invariant(
+    checked.rows.length,
+    'RECEIVE_REVIEW_REQUIRED',
+    'This request predates receiving-address checks. Ask the merchant for a new payment request before paying. Any existing transfer needs manual review.',
+    409,
+  );
 }
 function viewOrder(o: Order) {
   return {
@@ -105,6 +109,7 @@ function viewOrder(o: Order) {
         : o.state,
     expiresAt: o.expires_at,
     createdAt: o.created_at,
+    cancellationReviewRequired: o.cancellation_review_required ?? false,
   };
 }
 function viewAttempt(a: Attempt) {
@@ -122,7 +127,7 @@ function viewAttempt(a: Attempt) {
 export async function workspace(merchantId: string) {
   const s = await storeFor(pool(), merchantId);
   const orders = await pool().query<Order>(
-    'SELECT * FROM orders WHERE store_id=$1 ORDER BY created_at DESC LIMIT 100',
+    'SELECT o.*,c.review_required AS cancellation_review_required FROM orders o LEFT JOIN order_cancellations c ON c.order_id=o.id WHERE o.store_id=$1 ORDER BY o.created_at DESC LIMIT 100',
     [s.id],
   );
   const proofs = await pool().query<{ address: string; txid: string }>(
@@ -183,12 +188,33 @@ export async function configureStore(merchantId: string, name: string, xpub?: st
 }
 export async function createOrder(
   merchantId: string,
-  input: { title: string; amount: number },
+  input: {
+    title: string;
+    amount: number;
+    receiving?: ReceiveSelection;
+    correctedFrom?: string;
+    expectedReceiveIndex?: number;
+  },
   key: string,
   provider: Chain = chain,
 ) {
   return transaction(async (db) =>
     idempotent(db, `order:${merchantId}`, key, input, async () => {
+      if (input.correctedFrom) {
+        const original = await orderFor(db, input.correctedFrom, { merchantId }, true);
+        const cancellation = await db.query(
+          'SELECT review_required FROM order_cancellations WHERE order_id=$1',
+          [original.id],
+        );
+        invariant(
+          original.state === 'cancelled' &&
+            cancellation.rows[0] &&
+            !cancellation.rows[0].review_required,
+          'CORRECTION_BLOCKED',
+          'Safely cancel the original payment request before creating a correction. Late activity needs manual review.',
+          409,
+        );
+      }
       const s = await storeFor(db, merchantId, true);
       invariant(
         s.receive_xpub,
@@ -199,32 +225,19 @@ export async function createOrder(
       const amount = sats(input.amount),
         id = randomUUID(),
         cap = token(),
-        // Paytaca 0.27.3 reserves receive 0/0 for message encryption and hides it
-        // from its normal Receive screen. Existing records are never reallocated.
-        firstIndex = Math.max(1, s.address_index);
-      invariant(
-        firstIndex < 10000,
-        'ADDRESS_LIMIT',
-        'This release supports receive indices below 10,000; contact support before creating more requests.',
-        409,
-      );
-      // A chain-level xpub may belong to an already-used wallet. Never allocate
-      // an address with old payment history to a new purchase. The store lock
-      // serializes allocation; bounded parallel reads avoid unbounded discovery.
-      const candidates = Array.from({ length: Math.min(5, 10000 - firstIndex) }, (_, offset) => ({
-        index: firstIndex + offset,
-        address: deriveAddress(s.receive_xpub!, firstIndex + offset, s.network),
-      }));
-      const checked = await Promise.all(candidates.map(async (candidate) => ({
-        ...candidate,
-        used: (await provider.history(candidate.address, s.network)).length > 0,
-      })));
-      const fresh = checked.find(candidate => !candidate.used);
-      invariant(fresh, 'RECEIVE_RANGE_USED',
-        'The next five receive addresses already have history. Use a fresh merchant wallet for a new store or contact support to advance the receive range.', 409);
+        fresh = await freshReceiving(db, s, input.receiving, provider);
       const { address, index } = fresh,
         reference = `RT-${id.slice(0, 8).toUpperCase()}`;
-      await db.query('UPDATE stores SET address_index=$2 WHERE id=$1', [s.id, index + 1]);
+      invariant(
+        input.expectedReceiveIndex === undefined || input.expectedReceiveIndex === index,
+        'RECEIVE_PREVIEW_CHANGED',
+        'The available receiving index changed. Review the new destination before confirming again.',
+        409,
+      );
+      await db.query('UPDATE stores SET address_index=GREATEST(address_index,$2) WHERE id=$1', [
+        s.id,
+        index + 1,
+      ]);
       await db.query(
         'INSERT INTO wallet_addresses(id,store_id,network,address,address_index) VALUES($1,$2,$3,$4,$5)',
         [randomUUID(), s.id, s.network, address, index],
@@ -234,11 +247,207 @@ export async function createOrder(
         [id, s.id, capabilityHash(cap), input.title, reference, s.network, address, index, amount],
       );
       await audit(db, s.id, id, 'order.created', merchantId, {
-        amount, reference, receivingHistoryChecked: true, receiveIndex: index,
+        amount,
+        reference,
+        receivingHistoryChecked: true,
+        receiveIndex: index,
+        ...(input.correctedFrom ? { correctedFrom: input.correctedFrom } : {}),
       });
-      return { id, capability: cap, reference };
+      return {
+        id,
+        capability: cap,
+        reference,
+        address,
+        addressIndex: index,
+        amount,
+        network: s.network,
+      };
     }),
   );
+}
+export type ReceiveSelection = { xpub: string; index: number };
+async function freshReceiving(
+  db: Sql,
+  s: Store,
+  selected: ReceiveSelection | undefined,
+  provider: Chain,
+) {
+  invariant(
+    s.receive_xpub,
+    'WALLET_REQUIRED',
+    'Save your connected wallet’s receiving key first.',
+    409,
+  );
+  if (selected) {
+    invariant(
+      selected.xpub === s.receive_xpub,
+      'WALLET_MISMATCH',
+      'The connected receiving chain differs from your saved merchant wallet. Check the selected account.',
+      409,
+    );
+    invariant(
+      Number.isInteger(selected.index) && selected.index >= 1 && selected.index < 10000,
+      'INVALID_RECEIVE_INDEX',
+      'Select a positive receive index below 10,000. Index zero is blocked.',
+      409,
+    );
+  }
+  // Paytaca hides index zero. Never alter existing destinations or lower the high-water mark.
+  const first = selected?.index ?? Math.max(1, s.address_index);
+  invariant(first < 10000, 'ADDRESS_LIMIT', 'Receive indices must be below 10,000.', 409);
+  const candidates = Array.from(
+    { length: selected ? 1 : Math.min(5, 10000 - first) },
+    (_, offset) => ({
+      index: first + offset,
+      address: deriveAddress(s.receive_xpub!, first + offset, s.network),
+    }),
+  );
+  // Check both tables, including legacy orders without a wallet_addresses row.
+  const allocated = await db.query<{ address: string; address_index: number; store_id: string }>(
+    `SELECT address,address_index,store_id FROM orders WHERE network=$1 AND
+      (address=ANY($2::text[]) OR (store_id=$3 AND address_index=ANY($4::int[])))
+     UNION SELECT address,address_index,store_id FROM wallet_addresses WHERE network=$1 AND
+      (address=ANY($2::text[]) OR (store_id=$3 AND path='receive' AND address_index=ANY($4::int[])))`,
+    [s.network, candidates.map((c) => c.address), s.id, candidates.map((c) => c.index)],
+  );
+  const used = new Set(allocated.rows.map((row) => row.address));
+  const usedIndices = new Set(
+    allocated.rows.filter((row) => row.store_id === s.id).map((row) => row.address_index),
+  );
+  const checked = await Promise.all(
+    candidates.map(async (candidate) => ({
+      ...candidate,
+      used:
+        used.has(candidate.address) ||
+        usedIndices.has(candidate.index) ||
+        (await provider.history(candidate.address, s.network)).length > 0,
+    })),
+  );
+  const fresh = checked.find((candidate) => !candidate.used);
+  invariant(
+    fresh,
+    'RECEIVE_RANGE_USED',
+    selected
+      ? 'This receive index is already allocated or has blockchain history. Select a fresh unused address in Paytaca; cancelled addresses cannot be recycled.'
+      : 'The next five receive addresses are allocated or already have history. Select a fresh positive index from your connected wallet’s Receive screen.',
+    409,
+  );
+  return fresh;
+}
+export async function previewReceiving(
+  merchantId: string,
+  selected?: ReceiveSelection,
+  provider: Chain = chain,
+) {
+  return transaction(async (db) => {
+    const s = await storeFor(db, merchantId, true);
+    const fresh = await freshReceiving(db, s, selected, provider);
+    return { address: fresh.address, addressIndex: fresh.index, network: s.network };
+  });
+}
+async function cancellationBlockers(db: Sql, o: Order) {
+  const records = await db.query(
+    `SELECT 1 FROM payments WHERE order_id=$1
+    UNION ALL SELECT 1 FROM attempts WHERE order_id=$1
+    UNION ALL SELECT 1 FROM refunds WHERE order_id=$1
+    UNION ALL SELECT 1 FROM refund_settlements rs JOIN refunds r ON r.id=rs.refund_id WHERE r.order_id=$1 LIMIT 1`,
+    [o.id],
+  );
+  return records.rows.length > 0 || Number(o.reserved) !== 0 || Number(o.settled) !== 0;
+}
+export async function cancelOrder(
+  id: string,
+  actor: { merchantId: string } | { capability: string },
+  key: string,
+  provider: Chain = chain,
+) {
+  invariant(
+    'merchantId' in actor,
+    'UNAUTHORIZED',
+    'Merchant authentication is required to cancel a payment request.',
+    403,
+  );
+  return transaction(async (db) => {
+    // Authorization is checked even on an idempotent replay.
+    const o = await orderFor(db, id, actor, true);
+    return idempotent(db, `cancel-order:${actor.merchantId}:${id}`, key, { id }, async () => {
+      if (o.state === 'cancelled') return { state: 'cancelled', cancelled: true };
+      invariant(
+        ['awaiting_payment', 'expired'].includes(o.state) && !(await cancellationBlockers(db, o)),
+        'CANCELLATION_BLOCKED',
+        'This request has payment, signing or settlement records, or requires review. Reconcile the evidence before taking further action.',
+        409,
+      );
+      // A provider failure aborts. No absence is assumed. Lock serializes with prepare/verify/sign.
+      const history = await provider.history(o.address, o.network);
+      if (history.length) {
+        await db.query("UPDATE orders SET state='review_required' WHERE id=$1", [id]);
+        await audit(db, o.store_id, id, 'order.cancellation_blocked', actor.merchantId, {
+          reason: 'receiving_activity',
+          txids: history,
+        });
+        return { state: 'review_required', cancelled: false };
+      }
+      await db.query("UPDATE orders SET state='cancelled' WHERE id=$1", [id]);
+      await db.query('INSERT INTO order_cancellations(order_id) VALUES($1)', [id]);
+      await audit(db, o.store_id, id, 'order.cancelled', actor.merchantId, {
+        receiveIndex: o.address_index,
+        receivingHistoryChecked: true,
+      });
+      return { state: 'cancelled', cancelled: true };
+    });
+  });
+}
+async function recordCancelledActivity(
+  db: Sql,
+  o: Order,
+  txids: string[],
+  observation?: Observation,
+) {
+  const updated = await db.query(
+    'UPDATE order_cancellations SET checked_at=now(),review_required=review_required OR $2 WHERE order_id=$1 RETURNING review_required',
+    [o.id, txids.length > 0],
+  );
+  for (const txid of new Set(txids)) {
+    const known = await db.query(
+      "SELECT 1 FROM audit_events WHERE order_id=$1 AND action='payment.after_cancellation' AND detail->>'txid'=$2",
+      [o.id, txid],
+    );
+    if (!known.rows.length)
+      await audit(db, o.store_id, o.id, 'payment.after_cancellation', 'network', {
+        txid,
+        reviewRequired: true,
+        evidence: observation ?? { source: 'receiving_address_history', network: o.network },
+      });
+    else if (observation) {
+      const retained = await db.query(
+        "SELECT 1 FROM audit_events WHERE order_id=$1 AND action IN ('payment.after_cancellation','payment.after_cancellation_observed') AND detail->>'txid'=$2 AND detail->'evidence'->>'raw'=$3",
+        [o.id, txid, observation.raw],
+      );
+      if (!retained.rows.length)
+        await audit(db, o.store_id, o.id, 'payment.after_cancellation_observed', 'network', {
+          txid,
+          reviewRequired: true,
+          evidence: observation,
+        });
+    }
+  }
+  return {
+    state: 'cancelled',
+    reviewRequired: updated.rows[0]?.review_required ?? txids.length > 0,
+  };
+}
+async function checkCancelled(
+  id: string,
+  actor: { merchantId: string } | { capability: string },
+  provider: Chain,
+) {
+  const original = await orderFor(pool(), id, actor);
+  const history = await provider.history(original.address, original.network);
+  return transaction(async (db) => {
+    const o = await orderFor(db, id, actor, true);
+    return recordCancelledActivity(db, o, history);
+  });
 }
 export async function orderDetail(
   id: string,
@@ -262,6 +471,10 @@ export async function orderDetail(
     [id],
   );
   const store = await pool().query('SELECT name FROM stores WHERE id=$1', [o.store_id]);
+  const cancellation = await pool().query(
+    'SELECT cancelled_at,checked_at,review_required FROM order_cancellations WHERE order_id=$1',
+    [id],
+  );
   return {
     ...viewOrder(o),
     storeName: store.rows[0].name,
@@ -269,6 +482,10 @@ export async function orderDetail(
     refunds: refunds.rows.map((r) => ({ ...r, amount: Number(r.amount) })),
     attempts: attempts.rows.map(viewAttempt),
     events: events.rows,
+    cancellation: cancellation.rows[0] ?? null,
+    cancellationReviewRequired: cancellation.rows[0]?.review_required ?? false,
+    canCancel:
+      ['awaiting_payment', 'expired'].includes(o.state) && !(await cancellationBlockers(pool(), o)),
   };
 }
 export async function verifyPurchase(
@@ -278,6 +495,7 @@ export async function verifyPurchase(
   provider: Chain = chain,
 ) {
   const original = await orderFor(pool(), id, actor);
+  if (original.state === 'cancelled') return checkCancelled(id, actor, provider);
   await requireFreshAllocation(original.id);
   const old = await pool().query('SELECT txid FROM payments WHERE order_id=$1', [id]);
   const ids = providedTxid
@@ -343,12 +561,9 @@ export async function verifyPurchase(
       existing = await db.query('SELECT txid,state,block_hash FROM payments WHERE order_id=$1', [
         id,
       ]);
-    invariant(
-      o.state !== 'cancelled',
-      'ORDER_CANCELLED',
-      'This order was cancelled; manual merchant review is required.',
-      409,
-    );
+    // Verification may have started before cancellation won the row lock.
+    // Preserve the observation and keep the permanent cancelled lifecycle.
+    if (o.state === 'cancelled') return recordCancelledActivity(db, o, [observed.txid], observed);
     invariant(
       existing.rows.length || new Date(o.expires_at).getTime() > Date.now(),
       'ORDER_EXPIRED',
@@ -491,8 +706,12 @@ export type WalletSource = {
   indices: number[];
 };
 function requireDisplayableReceiveIndex(index: number) {
-  invariant(index !== 0, 'RECEIVE_INDEX_UNVERIFIED',
-    'Funding paused: receive index 0 cannot be inspected in Paytaca 0.27.3. This request is preserved. Do not send BCH to it.', 409);
+  invariant(
+    index !== 0,
+    'RECEIVE_INDEX_UNVERIFIED',
+    'Funding paused: receive index 0 cannot be inspected in Paytaca 0.27.3. This request is preserved. Do not send BCH to it.',
+    409,
+  );
 }
 export async function prepareAttempt(
   id: string,
@@ -510,6 +729,13 @@ export async function prepareAttempt(
     403,
   );
   const purpose = refundId ? 'refund' : 'payment';
+  if (!refundId)
+    invariant(
+      o.state === 'awaiting_payment' && new Date(o.expires_at).getTime() > Date.now(),
+      'ORDER_CLOSED',
+      'This payment request is closed. Do not prepare or authorize a payment.',
+      409,
+    );
   if (!refundId) requireDisplayableReceiveIndex(o.address_index);
   if (!refundId) await requireFreshAllocation(id);
   if (refundId) {
@@ -894,7 +1120,11 @@ export async function reconcileOrder(
   actor: { merchantId: string } | { capability: string },
   provider: Chain = chain,
 ) {
-  await orderFor(pool(), id, actor);
+  const original = await orderFor(pool(), id, actor);
+  if (original.state === 'cancelled') {
+    await checkCancelled(id, actor, provider);
+    return orderDetail(id, actor);
+  }
   const attempts = await pool().query<Attempt>(
     'SELECT * FROM attempts WHERE order_id=$1 AND raw_tx IS NOT NULL ORDER BY created_at',
     [id],
@@ -917,14 +1147,29 @@ export async function publicResolution(refundId: string) {
       'Merchant approval and purchase association are application records. Transaction outputs and inclusion are independently checked network evidence.',
   };
 }
-export async function reconcileAll() {
+export async function reconcileAll(provider: Chain = chain) {
   const attempts = await pool().query<Attempt>(
     'SELECT * FROM attempts WHERE raw_tx IS NOT NULL ORDER BY updated_at LIMIT 50',
   );
   const results = [];
+  const cancelled = await pool().query<{ id: string; merchant_id: string }>(
+    `SELECT o.id,s.merchant_id FROM order_cancellations c JOIN orders o ON o.id=c.order_id
+     JOIN stores s ON s.id=o.store_id WHERE o.network=$1 AND o.state='cancelled' ORDER BY c.checked_at LIMIT 20`,
+    [network()],
+  );
+  for (const o of cancelled.rows) {
+    try {
+      results.push({
+        id: o.id,
+        ...(await checkCancelled(o.id, { merchantId: o.merchant_id }, provider)),
+      });
+    } catch {
+      results.push({ id: o.id, state: 'provider_unavailable' });
+    }
+  }
   for (const a of attempts.rows) {
     try {
-      results.push({ id: a.id, ...(await reconcileAttempt(a.id)) });
+      results.push({ id: a.id, ...(await reconcileAttempt(a.id, provider)) });
     } catch {
       results.push({ id: a.id, state: 'provider_unavailable' });
     }
@@ -936,7 +1181,7 @@ export async function reconcileAll() {
     try {
       results.push({
         id: p.order_id,
-        ...(await verifyPurchase(p.order_id, { merchantId: p.merchant_id })),
+        ...(await verifyPurchase(p.order_id, { merchantId: p.merchant_id }, undefined, provider)),
       });
     } catch {
       results.push({ id: p.order_id, state: 'provider_unavailable' });

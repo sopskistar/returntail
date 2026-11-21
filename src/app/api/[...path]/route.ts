@@ -12,6 +12,9 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 const uuid = z.string().uuid();
+const receiving = z
+  .object({ xpub: z.string().min(100).max(120), index: z.number().int().min(1).max(9999) })
+  .strict();
 const credentials = z
   .object({
     email: z.email().max(254),
@@ -69,7 +72,7 @@ async function dispatch(req: Request, ctx: Context) {
     let database = false;
     try {
       const migration = await pool().query(
-        "SELECT 1 FROM schema_migrations WHERE name='0001_returntail'",
+        "SELECT 1 FROM schema_migrations WHERE name='0002_payment_request_cancellation'",
       );
       database = migration.rowCount === 1;
     } catch {
@@ -129,6 +132,10 @@ async function dispatch(req: Request, ctx: Context) {
     return authenticate(input, id === 'register');
   }
   if (root === 'store') {
+    if (id === 'receive-preview') {
+      const input = z.object({ receiving: receiving.optional() }).strict().parse(body);
+      return service.previewReceiving((await requireMerchant()).id, input.receiving);
+    }
     const input = z
       .object({
         name: z.string().trim().min(2).max(100),
@@ -143,6 +150,9 @@ async function dispatch(req: Request, ctx: Context) {
       .object({
         title: z.string().trim().min(2).max(160),
         amount: z.number().int().min(546).max(2100000000000000),
+        receiving: receiving.optional(),
+        correctedFrom: uuid.optional(),
+        expectedReceiveIndex: z.number().int().min(1).max(9999).optional(),
       })
       .strict()
       .parse(body);
@@ -152,6 +162,10 @@ async function dispatch(req: Request, ctx: Context) {
     uuid.parse(id);
     const who = await actor(req);
     await rateLimit(pool(), `order:${id}`, 30);
+    if (action === 'cancel') {
+      z.object({}).strict().parse(body);
+      return service.cancelOrder(id, who, key(req));
+    }
     if (action === 'verify') {
       const input = z
         .object({
@@ -235,7 +249,10 @@ async function handler(req: Request, ctx: Context) {
         { error: e.code, message: e.message },
         {
           status: e.status,
-          headers: { 'Cache-Control': 'no-store', ...(e.status === 429 ? { 'Retry-After': '60' } : {}) },
+          headers: {
+            'Cache-Control': 'no-store',
+            ...(e.status === 429 ? { 'Retry-After': '60' } : {}),
+          },
         },
       );
     // Do not send SQL, connection strings, wallet session material, or raw tx errors to clients.

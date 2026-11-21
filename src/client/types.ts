@@ -13,6 +13,7 @@ export type OrderSummary = {
   state: string;
   expiresAt: string;
   createdAt: string;
+  cancellationReviewRequired: boolean;
 };
 export type Workspace = {
   store: {
@@ -46,6 +47,8 @@ export type RefundView = {
   created_at: string;
 };
 export type OrderDetail = OrderSummary & {
+  canCancel: boolean;
+  cancellation: { cancelled_at: string; checked_at: string; review_required: boolean } | null;
   storeName: string;
   payment: {
     txid: string;
@@ -61,4 +64,13 @@ export type OrderDetail = OrderSummary & {
   refunds: RefundView[];
   attempts: AttemptView[];
   events: { id: string; action: string; created_at: string; detail: Record<string, unknown> }[];
+};
+export type CreatedOrder = {
+  id: string;
+  capability: string;
+  reference: string;
+  address: string;
+  addressIndex: number;
+  amount: number;
+  network: Network;
 };
