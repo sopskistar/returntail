@@ -56,13 +56,15 @@ test.describe.serial('real localhost app, no blockchain transfers', () => {
     }
     await page.setViewportSize({ width: 834, height: 1112 });
     await page.goto('/login');
-    expect(await page.locator('.auth-story').evaluate(story => {
-      const bounds = story.getBoundingClientRect();
-      return [...story.querySelectorAll('.state-trail li')].every(item => {
-        const rect = item.getBoundingClientRect();
-        return rect.left >= bounds.left && rect.right <= bounds.right;
-      });
-    })).toBe(true);
+    expect(
+      await page.locator('.auth-story').evaluate((story) => {
+        const bounds = story.getBoundingClientRect();
+        return [...story.querySelectorAll('.state-trail li')].every((item) => {
+          const rect = item.getBoundingClientRect();
+          return rect.left >= bounds.left && rect.right <= bounds.right;
+        });
+      }),
+    ).toBe(true);
   });
   test('rejects unauthorized APIs and cross-origin mutations', async ({ request, baseURL }) => {
     expect((await request.get('/api/workspace')).status()).toBe(401);
@@ -124,6 +126,8 @@ test.describe.serial('real localhost app, no blockchain transfers', () => {
     await page.goto('/workspace/new');
     await page.getByLabel('Purchase description').fill('ISOLATED QA purchase — no funds');
     await page.getByLabel('Amount in satoshis').fill('10000');
+    await page.getByRole('button', { name: 'Review payment request' }).click();
+    await expect(page.getByRole('dialog')).toContainText('10,000 satoshis = 0.00010000 BCH');
     await page.getByRole('button', { name: 'Create private payment request' }).click();
     await expect(page.getByRole('heading', { name: 'Ready for your customer.' })).toBeVisible();
     privateLink = await page

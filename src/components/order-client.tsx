@@ -18,6 +18,7 @@ import { useWallet, WalletInfo } from './wallet-provider';
 import { StateTrail, Status } from './status';
 import { Loading, ServiceError } from './workspace-client';
 import { AddressChecker } from './address-checker';
+import { ConfirmDialog } from './confirm-dialog';
 export function OrderClient({ id, merchant = false }: { id: string; merchant?: boolean }) {
   const [order, setOrder] = useState<OrderDetail | null>(null),
     [error, setError] = useState(''),
@@ -25,6 +26,7 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
     [notice, setNotice] = useState(''),
     [noticeTone, setNoticeTone] = useState<'neutral' | 'warning' | 'success'>('neutral'),
     [firstIndex, setFirstIndex] = useState(0);
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const { wc, network, source, sign } = useWallet(),
     access = useRef<string | undefined>(undefined),
     keys = useRef(new Map<string, string>());
@@ -96,7 +98,11 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
   async function verify() {
     await run('verify', async () => {
       await api(`orders/${id}/verify`, {}, access.current);
-      setNotice('The payment was checked against the BCH network.');
+      setNotice(
+        order?.state === 'cancelled'
+          ? 'The cancelled destination was checked. Any detected activity stays flagged for manual review.'
+          : 'The payment was checked against the BCH network.',
+      );
     });
   }
   async function reconcile() {
@@ -122,7 +128,9 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
   async function authorize(a: AttemptView) {
     await run(`sign-${a.id}`, async () => {
       if (a.kind === 'payment' && order?.addressIndex === 0 && !a.txid)
-        throw new Error('Funding paused: Paytaca 0.27.3 cannot display this request’s index-zero destination. Do not authorize payment.');
+        throw new Error(
+          'Funding paused: Paytaca 0.27.3 cannot display this request’s index-zero destination. Do not authorize payment.',
+        );
       const storageKey = `returntail-signed-${a.id}`;
       let raw = sessionStorage.getItem(storageKey);
       if (!raw) {
@@ -201,8 +209,9 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
   const paymentAttempt = order.attempts.find(
     (a) => a.kind === 'payment' && a.state !== 'cancelled',
   );
-  const receivingChecked = order.events.some(event =>
-    event.action === 'order.created' && event.detail.receivingHistoryChecked === true);
+  const receivingChecked = order.events.some(
+    (event) => event.action === 'order.created' && event.detail.receivingHistoryChecked === true,
+  );
   return (
     <div>
       {merchant ? (
@@ -231,8 +240,35 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
       {order.network !== network && (
         <ServiceError error="This purchase belongs to another network. Do not sign with the current wallet." />
       )}
-      {!receivingChecked && <ServiceError error="This request predates receiving-address checks. Ask the merchant for a new payment link before paying; existing transfers need manual review." />}
-      {order.addressIndex === 0 && order.state === 'awaiting_payment' && <div className="alert warning" role="alert">Funding paused. This preserved request uses receive index zero, which Paytaca 0.27.3 cannot display in Receive. Do not send BCH to this address. <Link className="text-link" href="/wallet-check">Read the unfunded preflight</Link>.</div>}
+      {!receivingChecked && order.state !== 'cancelled' && (
+        <ServiceError error="This request predates receiving-address checks. Ask the merchant for a new payment link before paying; existing transfers need manual review." />
+      )}
+      {order.state === 'cancelled' && (
+        <div
+          className={`alert ${order.cancellation?.review_required ? 'warning' : ''}`}
+          role="status"
+        >
+          {order.cancellation?.review_required
+            ? 'Activity detected after cancellation. Manual review required. Transaction evidence is retained; do not pay or create another correction.'
+            : 'Payment request cancelled. Do not send BCH to this address. The request and destination remain in history and will never be reused.'}
+          {order.cancellation && (
+            <span>
+              {' '}
+              Last address check: {new Date(order.cancellation.checked_at).toLocaleString()}.
+            </span>
+          )}
+        </div>
+      )}
+      {order.addressIndex === 0 && order.state === 'awaiting_payment' && (
+        <div className="alert warning" role="alert">
+          Funding paused. This preserved request uses receive index zero, which Paytaca 0.27.3
+          cannot display in Receive. Do not send BCH to this address.{' '}
+          <Link className="text-link" href="/wallet-check">
+            Read the unfunded preflight
+          </Link>
+          .
+        </div>
+      )}
       <div className={`detail-grid ${merchant ? 'merchant-flow' : 'customer-flow'}`}>
         <div className="stack purchase-stack">
           <section className="panel">
@@ -245,13 +281,16 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
               <div className="purchase-total">
                 {bch(order.amount)} <span>BCH</span>
               </div>
-              <StateTrail
-                state={
-                  order.state === 'awaiting_payment' && paymentAttempt
-                    ? paymentAttempt.state
-                    : order.state
-                }
-              />
+              <p className="fine">{order.amount.toLocaleString()} satoshis</p>
+              {order.state !== 'cancelled' && (
+                <StateTrail
+                  state={
+                    order.state === 'awaiting_payment' && paymentAttempt
+                      ? paymentAttempt.state
+                      : order.state
+                  }
+                />
+              )}
               <div className="subtle-divider" />
               <dl className="data-list">
                 <div>
@@ -326,7 +365,11 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
               </div>
               <div className="button-row" style={{ marginTop: 25, gap: 12 }}>
                 <button className="button secondary" onClick={verify} disabled={!!busy}>
-                  {busy === 'verify' ? 'Checking…' : 'Check payment'}
+                  {busy === 'verify'
+                    ? 'Checking…'
+                    : order.state === 'cancelled'
+                      ? 'Check cancelled address'
+                      : 'Check payment'}
                   <RefreshCw size={15} />
                 </button>
                 {order.attempts.some((a) => a.txid) && (
@@ -335,6 +378,36 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
                   </button>
                 )}
               </div>
+              {merchant && order.canCancel && (
+                <div className="request-actions">
+                  <button
+                    className="button danger"
+                    disabled={!!busy}
+                    onClick={() => setConfirmCancel(true)}
+                  >
+                    Cancel payment request
+                  </button>
+                  <p className="fine">
+                    Cancellation keeps this request and permanently retires its destination. The
+                    server checks payment and signing records and receiving-address history first.
+                  </p>
+                </div>
+              )}
+              {merchant &&
+                ['awaiting_payment', 'expired'].includes(order.state) &&
+                !order.canCancel && (
+                  <p className="fine request-actions">
+                    Cancellation is blocked by payment, signing or settlement records. Reconcile
+                    those records; no transaction evidence can be discarded.
+                  </p>
+                )}
+              {merchant && order.state === 'cancelled' && !order.cancellation?.review_required && (
+                <div className="request-actions">
+                  <Link className="button" href={`/workspace/new?correctedFrom=${order.id}`}>
+                    Create corrected request
+                  </Link>
+                </div>
+              )}
             </div>
           </section>
           <section className="panel">
@@ -366,9 +439,11 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
                 <FileCheck2 size={30} strokeWidth={1.4} />
                 <h3>No refund requests.</h3>
                 <p>
-                  {merchant
-                    ? 'If the customer requests a refund, review its reason and destination here.'
-                    : 'Once your payment is confirmed, you can request a full or partial refund here.'}
+                  {order.state === 'cancelled'
+                    ? 'This request is cancelled. Any external transfer needs manual review.'
+                    : merchant
+                      ? 'If the customer requests a refund, review its reason and destination here.'
+                      : 'Once your payment is confirmed, you can request a full or partial refund here.'}
                 </p>
               </div>
             )}
@@ -392,7 +467,11 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
           </section>
         </div>
         <aside className="stack purchase-actions">
-          {merchant && order.state === 'awaiting_payment' && <div className="panel panel-body"><AddressChecker address={order.address} index={order.addressIndex} /></div>}
+          {merchant && order.state === 'awaiting_payment' && (
+            <div className="panel panel-body">
+              <AddressChecker address={order.address} index={order.addressIndex} />
+            </div>
+          )}
           {!merchant && order.state === 'awaiting_payment' && (
             <section className="panel">
               <div className="panel-heading">
@@ -418,7 +497,12 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
                 ) : (
                   <button
                     className="button"
-                    disabled={!!busy || wc.state !== 'connected' || !receivingChecked || order.addressIndex === 0}
+                    disabled={
+                      !!busy ||
+                      wc.state !== 'connected' ||
+                      !receivingChecked ||
+                      order.addressIndex === 0
+                    }
                     onClick={() => prepare()}
                   >
                     <Wallet size={16} />
@@ -529,6 +613,40 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
           </div>
         </aside>
       </div>
+      {confirmCancel && (
+        <ConfirmDialog
+          title="Cancel this payment request?"
+          confirm="Confirm cancellation"
+          busy={!!busy}
+          onClose={() => setConfirmCancel(false)}
+          onConfirm={() => {
+            setConfirmCancel(false);
+            void run('cancel-request', async () => {
+              const result = await api<{ cancelled: boolean }>(
+                `orders/${id}/cancel`,
+                {},
+                undefined,
+                key('cancel-request'),
+              );
+              setNoticeTone(result.cancelled ? 'neutral' : 'warning');
+              setNotice(
+                result.cancelled
+                  ? 'Payment request cancelled. Its address stays retired and its records remain available.'
+                  : 'Address activity was found. Cancellation is blocked for manual review; the evidence is saved.',
+              );
+            });
+          }}
+        >
+          <p>
+            {order.reference}: {order.amount.toLocaleString()} satoshis ({bch(order.amount)} BCH),
+            receive index {order.addressIndex}.
+          </p>
+          <p>
+            The private customer page will stop offering payment. The address and all records stay
+            in history. External transfers are still possible and require manual review.
+          </p>
+        </ConfirmDialog>
+      )}
     </div>
   );
 }

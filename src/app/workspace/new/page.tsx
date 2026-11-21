@@ -7,10 +7,15 @@ export const metadata: Metadata = {
     'Create a real, private BCH merchant payment request with a unique receiving address.',
   robots: { index: false, follow: false },
 };
-export default function New() {
+export default async function New({
+  searchParams,
+}: {
+  searchParams: Promise<{ correctedFrom?: string }>;
+}) {
+  const { correctedFrom } = await searchParams;
   return (
     <WorkspaceShell>
-      <NewOrder />
+      <NewOrder correctedFrom={correctedFrom} />
     </WorkspaceShell>
   );
 }

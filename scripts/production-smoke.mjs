@@ -22,6 +22,12 @@ const cases = [
   { path: '/api/orders', expected: 401, method: 'POST', headers: {
     Origin: url.origin, 'Content-Type': 'application/json',
   }, body: JSON.stringify({ title: 'Unauthorized request must be rejected', amount: 10000 }) },
+  { path: `/api/orders/${randomUUID()}/cancel`, expected: 401, method: 'POST', headers: {
+    Origin: url.origin, 'Content-Type': 'application/json', 'Idempotency-Key': randomUUID(),
+  }, body: '{}' },
+  { path: '/api/store/receive-preview', expected: 401, method: 'POST', headers: {
+    Origin: url.origin, 'Content-Type': 'application/json',
+  }, body: '{}' },
 ];
 const results = await Promise.all(cases.map(async ({ path, expected, ...init }) => {
   try {

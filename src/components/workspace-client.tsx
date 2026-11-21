@@ -15,9 +15,12 @@ import {
   Copy,
 } from 'lucide-react';
 import { api, message, requestKey } from '@/client/api';
-import type { Workspace, OrderDetail } from '@/client/types';
+import type { Workspace, OrderDetail, CreatedOrder } from '@/client/types';
 import { bch } from '@/core/money';
-import { explorer } from '@/core/bch';
+import { explorer, deriveAddress } from '@/core/bch';
+import { sameDestination } from '@/client/address-check';
+import { ConfirmDialog } from './confirm-dialog';
+import { AddressChecker } from './address-checker';
 import { WalletInfo, useWallet } from './wallet-provider';
 import { Status } from './status';
 export function SignOut() {
@@ -140,6 +143,7 @@ export function WorkspaceClient({ refunds = false }: { refunds?: boolean }) {
                     <td className="amount">{bch(o.amount)} BCH</td>
                     <td>
                       <Status state={o.state} />
+                      {o.cancellationReviewRequired && <Status state="review_required" />}
                     </td>
                     <td>
                       <Link
@@ -339,80 +343,190 @@ export function StoreSettings() {
     </div>
   );
 }
-export function NewOrder() {
+export function NewOrder({ correctedFrom }: { correctedFrom?: string }) {
+  const { wc, network } = useWallet();
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
-    [created, setCreated] = useState<{ id: string; capability: string; reference: string } | null>(
-      null,
-    ),
-    [copied, setCopied] = useState(false);
-  const key = useRef('');
-  const [origin, setOrigin] = useState('');
+    [created, setCreated] = useState<CreatedOrder | null>(null),
+    [copied, setCopied] = useState(false),
+    [original, setOriginal] = useState<OrderDetail | null>(null),
+    [title, setTitle] = useState(''),
+    [amount, setAmount] = useState(correctedFrom ? '10000' : ''),
+    [selectedIndex, setSelectedIndex] = useState(''),
+    [native, setNative] = useState(''),
+    [origin, setOrigin] = useState('');
+  type Review = {
+    title: string;
+    amount: number;
+    address: string;
+    addressIndex: number;
+    receiving?: { xpub: string; index: number };
+  };
+  const [review, setReview] = useState<Review | null>(null);
+  const keys = useRef(new Map<string, string>());
   useEffect(() => {
     Promise.resolve(window.location.origin).then(setOrigin);
   }, []);
-  async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const f = new FormData(e.currentTarget);
+  useEffect(() => {
+    if (!correctedFrom) return;
+    let live = true;
+    api<OrderDetail>(`orders/${correctedFrom}`)
+      .then((result) => {
+        if (!live) return;
+        setOriginal(result);
+        setTitle(result.title);
+        if (result.state !== 'cancelled' || result.cancellation?.review_required)
+          setError(
+            'Cancel the original request safely first. Any late activity needs manual review.',
+          );
+      })
+      .catch((e) => {
+        if (live) setError(message(e));
+      });
+    return () => {
+      live = false;
+    };
+  }, [correctedFrom]);
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setBusy(true);
     setError('');
-    key.current ||= requestKey();
     try {
-      const result = await api<{ id: string; capability: string; reference: string }>(
-        'orders',
-        { title: f.get('title'), amount: Number(f.get('amount')) },
-        undefined,
-        key.current,
+      let receiving: Review['receiving'];
+      if (selectedIndex !== '') {
+        const index = Number(selectedIndex);
+        if (wc.state !== 'connected' || !wc.manager)
+          throw Error('Connect your existing merchant wallet to select a Receive index.');
+        const receive = wc.manager.getSessionPaths().find((path) => path.name === 'receive');
+        if (!receive) throw Error('The connected wallet did not advertise a receiving chain.');
+        if (!sameDestination(deriveAddress(receive.xpub, index, network), native, network))
+          throw Error(
+            'The pasted Paytaca address does not match this index on the connected receiving chain. Stop and check the account and index.',
+          );
+        receiving = { xpub: receive.xpub, index };
+      }
+      const preview = await api<{ address: string; addressIndex: number }>(
+        'store/receive-preview',
+        { ...(receiving ? { receiving } : {}) },
       );
-      setCreated(result);
-      key.current = '';
+      setReview({
+        title: title.trim(),
+        amount: Number(amount),
+        ...preview,
+        ...(receiving ? { receiving } : {}),
+      });
     } catch (e) {
       setError(message(e));
     } finally {
       setBusy(false);
     }
   }
+  async function create() {
+    if (!review) return;
+    setBusy(true);
+    setError('');
+    const input = {
+      title: review.title,
+      amount: review.amount,
+      expectedReceiveIndex: review.addressIndex,
+      ...(review.receiving ? { receiving: review.receiving } : {}),
+      ...(correctedFrom ? { correctedFrom } : {}),
+    };
+    const fingerprint = JSON.stringify(input);
+    const key = keys.current.get(fingerprint) ?? requestKey();
+    keys.current.set(fingerprint, key);
+    try {
+      // A wallet may have changed while the confirmation was open.
+      if (
+        review.receiving &&
+        (wc.state !== 'connected' ||
+          wc.manager?.getSessionPaths().find((path) => path.name === 'receive')?.xpub !==
+            review.receiving.xpub)
+      )
+        throw Error('The connected wallet changed. Review the receiving destination again.');
+      setCreated(await api<CreatedOrder>('orders', input, undefined, key));
+      setReview(null);
+    } catch (e) {
+      setError(message(e));
+      // Keep the reviewed input and its key after an uncertain response. A retry
+      // must recover the same private capability, never allocate another address.
+    } finally {
+      setBusy(false);
+    }
+  }
   const link = created ? `${origin}/pay/${created.id}#access=${created.capability}` : '';
+  const validAmount = Number.isSafeInteger(Number(amount)) && Number(amount) >= 546;
   return (
     <div className="detail-grid">
       <section className="panel">
         <div className="panel-heading">
-          <h2>{created ? 'Payment request created' : 'New payment request'}</h2>
+          <h2>
+            {created
+              ? 'Payment request created'
+              : correctedFrom
+                ? 'Create corrected request'
+                : 'New payment request'}
+          </h2>
         </div>
         <div className="panel-body">
-          {error && <ServiceError error={error} />}{' '}
+          {error && <ServiceError error={error} />}
           {created ? (
-            <div className="animated-state">
-              <div className="success-mark">
-                <Check size={25} />
-              </div>
+            <div>
               <h3>Ready for your customer.</h3>
-              <p className="fine" style={{ marginTop: 12 }}>
-                Reference {created.reference}. Save this private link now; the capability is shown
-                only on this creation screen or an identical idempotent retry.
+              <p className="fine">
+                Reference {created.reference}. Save the complete private link now. It is available
+                here or through an identical creation retry.
               </p>
-              <div className="copy-link">
-                <input readOnly value={link} aria-label="Private customer purchase link" />
+              <dl className="data-list request-review">
+                <div>
+                  <dt>Amount</dt>
+                  <dd>
+                    {created.amount.toLocaleString()} satoshis · {bch(created.amount)} BCH
+                  </dd>
+                </div>
+                <div className="long">
+                  <dt>Exact receiving address</dt>
+                  <dd>
+                    <code className="wrap">{created.address}</code>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Receive index</dt>
+                  <dd>{created.addressIndex}</dd>
+                </div>
+              </dl>
+              <div className="field private-link-field">
+                <label htmlFor="private-customer-link">Private customer purchase link</label>
+                <textarea
+                  id="private-customer-link"
+                  readOnly
+                  value={link}
+                  rows={4}
+                  spellCheck={false}
+                  onFocus={(event) => event.target.select()}
+                />
                 <button
                   className="button secondary"
-                  aria-label="Copy private customer link"
                   onClick={async () => {
                     try {
                       await navigator.clipboard.writeText(link);
                       setCopied(true);
                     } catch {
-                      setError('Clipboard unavailable. Select and copy the link manually.');
+                      setError(
+                        'Clipboard unavailable. Select and copy the complete link manually.',
+                      );
                     }
                   }}
                 >
                   {copied ? <Check size={18} /> : <Copy size={18} />}
+                  {copied ? 'Private link copied' : 'Copy private customer link'}
                 </button>
               </div>
               <p className="fine">
-                This link authorizes access to the purchase and refund requests. Share it with the
-                customer only.
+                This link authorizes private purchase and refund access. Share it with the customer
+                only. Compare the exact destination with Paytaca before sharing.
               </p>
-              <div className="button-row" style={{ marginTop: 24 }}>
+              <div className="button-row request-actions">
                 <Link href={`/workspace/orders/${created.id}`} className="button">
                   View purchase
                   <ArrowUpRight size={16} />
@@ -422,15 +536,25 @@ export function NewOrder() {
                   <ArrowUpRight size={16} />
                 </a>
               </div>
+              <div className="request-comparison">
+                <AddressChecker address={created.address} index={created.addressIndex} />
+              </div>
             </div>
           ) : (
             <form method="post" action="/api/orders" onSubmit={submit}>
+              {original && (
+                <p className="alert">
+                  Corrects {original.reference}: {original.amount.toLocaleString()} satoshis (
+                  {bch(original.amount)} BCH). The original destination stays retired.
+                </p>
+              )}
               <div className="field">
                 <label htmlFor="title">Purchase description</label>
                 <input
                   id="title"
                   name="title"
-                  placeholder="What is your customer purchasing?"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   minLength={2}
                   maxLength={160}
                   required
@@ -447,19 +571,75 @@ export function NewOrder() {
                   max={2100000000000000}
                   step={1}
                   placeholder="10000"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
                   required
                 />
-                <small>
-                  1 BCH = 100,000,000 satoshis. Minimum 546 satoshis. No fiat conversion.
+                <small aria-live="polite">
+                  {validAmount
+                    ? `${Number(amount).toLocaleString()} satoshis = ${bch(Number(amount))} BCH`
+                    : 'Enter a whole amount of at least 546 satoshis.'}
                 </small>
               </div>
+              <details className="receive-selection">
+                <summary>Match a different positive Paytaca Receive index</summary>
+                <p className="fine">
+                  If Paytaca shows another index, select a fresh Receive address there. Connect the
+                  same merchant wallet, enter that positive index and paste its exact public
+                  address. The server derives from your saved chain and rejects allocated addresses
+                  and any blockchain history.
+                </p>
+                <WalletInfo />
+                <div className="field">
+                  <label htmlFor="receive-index">Paytaca Receive index (optional)</label>
+                  <input
+                    id="receive-index"
+                    type="number"
+                    min={1}
+                    max={9999}
+                    step={1}
+                    value={selectedIndex}
+                    onChange={(e) => setSelectedIndex(e.target.value)}
+                  />
+                  <small>
+                    Leave blank for the next fresh address. Indices 1 through 9,999; never index
+                    zero.
+                  </small>
+                </div>
+                <div className="field">
+                  <label htmlFor="native-receive">Native Paytaca Receive address</label>
+                  <input
+                    id="native-receive"
+                    value={native}
+                    onChange={(e) => setNative(e.target.value)}
+                    required={selectedIndex !== ''}
+                    maxLength={120}
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                  <small>
+                    The pasted address is compared locally. The server checks your saved receiving
+                    chain and index; it never accepts an arbitrary destination.
+                  </small>
+                </div>
+              </details>
               <p className="fine">
-                A unique receiving address ties the exact BCH amount to this purchase. Payment
-                requests expire after 24 hours.
+                Review the exact amount and destination before creating this 24-hour payment
+                request. All previous destinations remain reserved permanently.
               </p>
               <div className="form-footer">
-                <button className="button" disabled={busy} aria-busy={busy}>
-                  {busy ? 'Creating…' : 'Create private payment request'}
+                <button
+                  className="button"
+                  disabled={
+                    busy ||
+                    (!!correctedFrom &&
+                      (!original ||
+                        original.state !== 'cancelled' ||
+                        !!original.cancellation?.review_required))
+                  }
+                  aria-busy={busy}
+                >
+                  {busy ? 'Checking destination…' : 'Review payment request'}
                   <ArrowUpRight size={16} />
                 </button>
               </div>
@@ -474,15 +654,41 @@ export function NewOrder() {
           <br />A complete trail.
         </h2>
         <p>
-          The customer pays directly to your wallet. ReturnTail checks the transaction
-          independently.
+          Open Receive in Paytaca, choose BCH and the same personal wallet, and compare the entire
+          address and positive index with this request.
         </p>
-        <p>When a refund is needed, its amount and decision stay tied to this original purchase.</p>
+        <p>
+          A public-address match does not establish physical-wallet control. No signature or
+          transfer is requested here.
+        </p>
         <Link href="/workspace/settings" className="text-link">
           Review receiving wallet
           <ArrowUpRight size={16} />
         </Link>
       </aside>
+      {review && (
+        <ConfirmDialog
+          title="Confirm payment request"
+          confirm="Create private payment request"
+          busy={busy}
+          onClose={() => setReview(null)}
+          onConfirm={() => void create()}
+        >
+          {error && <ServiceError error={error} />}
+          <p>{review.title}</p>
+          <p>
+            <strong>
+              {review.amount.toLocaleString()} satoshis = {bch(review.amount)} BCH
+            </strong>
+          </p>
+          <p>Receive index {review.addressIndex}. Exact destination:</p>
+          <code className="wrap">{review.address}</code>
+          <p>
+            The address had no history at review. Creation checks again and permanently assigns it
+            to this request.
+          </p>
+        </ConfirmDialog>
+      )}
     </div>
   );
 }

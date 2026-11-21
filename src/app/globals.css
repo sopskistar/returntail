@@ -1427,6 +1427,18 @@ tbody tr:hover {
   align-items: center;
   margin-block: var(--space-size-20);
 }
+.request-dialog { position: fixed; inset: 0; margin: auto; height: fit-content; max-height: calc(100dvh - 32px); overflow-y: auto; }
+.request-dialog h2 { font-size: 24px; }
+.request-dialog .button-row { margin-top: var(--space-5); flex-wrap: wrap; }
+.request-actions { margin-top: var(--space-5); }
+.request-actions p { margin-top: var(--space-3); }
+.request-review { margin-block: var(--space-5); }
+.receive-selection { margin-block: var(--space-5); }
+.receive-selection summary { cursor: pointer; min-height: 44px; padding-block: var(--space-3); font-weight: 650; }
+.receive-selection > p, .receive-selection .wallet-info { margin-bottom: var(--space-4); }
+.private-link-field textarea { width: 100%; overflow-wrap: anywhere; word-break: break-all; font-size: 14px; }
+.private-link-field .button { align-self: start; }
+.request-comparison { margin-top: var(--space-6); }
 .copy-link input {
   width: 100%;
   min-width: 0;

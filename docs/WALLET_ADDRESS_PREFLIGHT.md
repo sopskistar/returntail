@@ -16,7 +16,9 @@ The deterministic derivation is consistent, but ReturnTail allocating zero was i
 
 ## Safe steps for this existing request
 
-1. Keep your existing request and the existing merchant browser tab/session. Do not reset the wallet, re-save a different key, create a replacement request, or share the private link publicly.
+Update, November 21: the physical Paytaca preflight was reported to match the advertised receiving chain at **index 1**. The incorrect **100,000-satoshi** request remains unfunded at index 0. That reported public-address match is not cryptographic control proof. Use [safe cancellation and correction](PAYMENT_REQUEST_CANCELLATION.md) to retire the old request explicitly and create **10,000 satoshis / 0.00010000 BCH** on a fresh positive index, preferably 1 if still eligible. Compare the exact new destination before funding. The dated steps below explain the original stop condition.
+
+1. Keep your existing request and merchant browser session until it is safely cancelled. Do not reset the wallet, re-save a different key, silently replace its destination, or share the private link publicly. After cancellation, use the explicit corrected-request action described above.
 2. On Paytaca, select the same wallet used for the connection. Open **Receive**, choose BCH, and select **Personal** under **Receive for** if offered. Copy only its public receiving address. Do not open or export private keys or recovery material.
 3. In that merchant browser, open `/wallet-check`, or the embedded comparison on your existing merchant request. Connect only if the connection is no longer available. Paste the native address and choose **Compare address locally**.
 4. The checker searches receiving children 0–255 locally. It checks network and compares locking scripts, so standard and CashToken-aware encodings of one destination match. On the request it also compares the connected public chain’s child at the recorded index with the stored address. Nothing is uploaded or persisted by this comparison.
