@@ -2,7 +2,7 @@
 
 Automated fixtures are isolated. They do not establish actual wallet compatibility, mainnet execution or hosted security. The BCH tests use real transaction serialization, signatures and Libauth VM validation. Integration tests run against PostgreSQL 17, not an in-memory database.
 
-Current executed totals: **35 core/unit + 42 PostgreSQL integration + 12 browser = 89 tests**. Final release report records the last check results and commit. Production-mode browser fixture tests are localhost-only; no automated funded transfer is permitted.
+Current executed totals: **40 core/unit + 45 PostgreSQL integration + 17 browser = 102 tests**. Final release report records the last check results and commit. Production-mode browser fixture tests are localhost-only; no automated funded transfer is permitted.
 
 | Required adversarial case        | Implemented assertion                                                                               |
 | -------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -59,3 +59,11 @@ First browser attempts surfaced a WASM CSP error (fixed and retested), developme
 - Previously used merchant wallet addresses could expose old matching-value payments to a new order. Allocation now checks both mainnet providers, skips any history and records freshness under the store lock. Missing checks/provider failure roll back; legacy requests cannot prepare or verify payment without a genuine allocation check. Historical markers are not backfilled. Six isolated PostgreSQL cases cover freshness, legacy rejection, rollback, idempotency and concurrent allocation; an additional provider fixture tests witness-only history.
 - Integration fixture connections now reject non-local hostnames even if a test URL is explicitly configured. Browser fixture tests remain restricted to localhost. Their confirmed transaction data and signing keys are isolated fixtures, never app mainnet evidence.
 - Physical Paytaca/Selene binary behavior, real signatures, unknown-outcome recovery on genuine transactions and funded settlement still require the documented manual gate. Source review excludes Paytaca v0.26.1 because it disregards sign-only broadcasting.
+
+## November20 physical-address correction and inspection surfaces
+
+Three PostgreSQL tests cover legacy zero-index funding refusal without record mutation, positive minimum allocation and recovery of identical saved bytes. Three core tests cover native-index discovery, network/script normalization including CashToken-aware encodings, invalid addresses and cancellation. Two unit tests retain explicit PostgreSQL hostname/certificate verification. Five browser tests cover the no-transaction player, actual local GET-only lab boundaries without cookies, isolated unavailable/unexpected HTTP fixtures, unfunded preflight and desktop/tablet/phone reduced motion. Existing financial invariants remain exercised by the unchanged settlement/concurrency cases.
+
+Independent review found that generic success styling could show green for an unknown broadcast. Notices now distinguish neutral checks/application actions, warning pending/unknown transactions and confirmation green. This does not turn a pending response into settlement. Native address matching never persists or grants wallet ownership status. Lab private response bodies are canceled without rendering, and probes never call reconciliation.
+
+The initial secret scan flagged a deliberately synthetic credential-shaped URL at a reserved `.invalid` host in the TLS unit test; no real credential existed. Its fixture now uses explicit URL fields, all40 unit tests pass, and the final scan passes. Source history was preserved. No production-money transfer or fixture reset was performed.

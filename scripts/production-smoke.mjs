@@ -8,7 +8,7 @@ const expectedNetwork = process.argv[3];
 if (expectedNetwork && !['mainnet', 'chipnet'].includes(expectedNetwork))
   throw Error('Optional expected network must be mainnet or chipnet.');
 const cases = [
-  ...['/', '/guide', '/evidence', '/privacy', '/register', '/login', '/robots.txt',
+  ...['/', '/guide', '/evidence', '/privacy', '/wallet-check', '/lab', '/register', '/login', '/robots.txt',
     '/sitemap.xml', '/icon.svg', '/brand/social.png', '/api/health', '/api/session']
     .map(path => ({ path, expected: 200 })),
   { path: '/missing-release-check-page', expected: 404 },

@@ -258,3 +258,9 @@ A native modal dialog presents wallet connection, QR/deep-link actions, copy fee
 ## November 20 accessibility refinements
 
 Preserve the approved saffron/plum identity. Form boundaries use semantic `--color-control-rule` from primitive `--p-control-line` (#8b7a91) to exceed 3:1 against white and the pale form surface. Saffron authentication progress labels use ink for text contrast. At tablet widths the illustrative trail becomes a contained two-column sequence; narrow-phone navigation keeps Workspace on one line. Reading-page body measure is capped at 65ch; evidence lists retain real bullet markers. These are accessibility and containment refinements, not a new visual direction.
+
+## Interactive inspection surfaces — November 20 refinement
+
+The homepage now leads with a two-column human problem / interactive explanation composition. “Play the Resolution” is six navigable chapters, with a persistent no-transaction disclosure, actor, problem, mechanism and state boundary. The chapter transition is a short clip/translation removed under reduced motion; ordinary text remains visible throughout. The read-only Break It Lab uses horizontal inspection rows with actual HTTP results and a separate source-test section. The wallet preflight uses the established `.field` treatment and visible ordered instructions. No new fonts or brand assets.
+
+Operational labels use deliberate 11–15px variants for compact chapter navigation, timestamps and supporting text, alongside the existing16px body; headings use20/24/28/32px roles. The original12px panel radius is exposed as `--radius-panel`. These are scoped extensions of the existing hierarchy. Financial notices now use neutral for completed checks/application actions, warning for pending/uncertain signed transactions, and confirmation green only for an observed confirmed result. Brand identity remains saffron/plum with Rethink Sans/Manrope.

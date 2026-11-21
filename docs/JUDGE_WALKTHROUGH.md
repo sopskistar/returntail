@@ -15,3 +15,7 @@ No mainnet demo is claimed before the funded journey is recorded in the proof le
 If no funded wallet is available, inspect honest empty states, secure registration, order construction and source/test evidence. Do not describe that as a mainnet demonstration. Do not expose private capabilities or personal wallet balances during presentation.
 
 Production deployment, Neon, HTTPS auth and runtime network readiness are verified. Remaining human gates: physical wallet/address preflight, funding, real transfers and confirmations, public Google Slides link and eligibility confirmation. See OWNER_CHECKLIST.md.
+
+## Unfunded inspection first
+
+Play the Resolution on the homepage explains a hypothetical damaged-item refund without requesting wallet actions or creating records. Break It Lab at `/lab` shows actual read-only HTTP responses; deeper security tests are explicitly isolated fixtures. Before any funded demonstration, complete [/wallet-check](https://returntail.vercel.app/wallet-check). Existing Paytaca0.27.3 index-zero requests remain unfunded and are not proof. Preserve the current request; do not reframe this gate as a completed wallet-to-chain demonstration.

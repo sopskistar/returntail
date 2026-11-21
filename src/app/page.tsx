@@ -3,12 +3,10 @@ import {
   ArrowRight,
   ArrowUpRight,
   Check,
-  FileCheck2,
   Fingerprint,
-  Link2,
-  MoveDownRight,
 } from 'lucide-react';
 import { Header, Footer } from '@/components/shell';
+import { ResolutionPlayer } from '@/components/resolution-player';
 import { CompetitionBanner } from '@/components/competition-banner';
 export default function Home() {
   return (
@@ -23,7 +21,7 @@ export default function Home() {
                 <br />
                 Make it verifiable.
               </h1>
-              <p>Resolve BCH refunds with your wallet and a verifiable paper trail.</p>
+              <p>A customer paid. Something went wrong. Resolve their BCH refund with your wallet and a verifiable paper trail.</p>
               <div className="button-row">
                 <Link className="button" href="/workspace">
                   Open your workspace
@@ -36,53 +34,14 @@ export default function Home() {
               </div>
               <div className="hero-note">
                 <Fingerprint size={18} />
-                <span>Your wallet signs. Your customer sees proof.</span>
+                <span>Your wallet signs. Your customer can inspect the result.</span>
               </div>
+              <Link className="text-link hero-preflight" href="/wallet-check">Before funding: check your wallet <ArrowRight size={16} /></Link>
             </div>
-            <div className="hero-record" aria-label="ReturnTail resolution workflow">
-              <div className="record-heading">
-                <span className="record-brand">The resolution trail</span>
-                <span className="mini-tag">BCH, end to end</span>
-              </div>
-              <div className="record-body">
-                <div className="record-origin">
-                  <FileCheck2 size={24} />
-                  <div>
-                    <strong>A purchase worth protecting.</strong>
-                    <span>Start with a verified payment.</span>
-                  </div>
-                </div>
-                <div className="trail-line">
-                  <span />
-                  <MoveDownRight size={36} />
-                </div>
-                <div className="record-resolution">
-                  <h2>
-                    A clear path
-                    <br />
-                    back to trust.
-                  </h2>
-                  <ol>
-                    <li>
-                      <span>01</span>Customer requests a refund
-                    </li>
-                    <li>
-                      <span>02</span>Merchant reviews and signs
-                    </li>
-                    <li>
-                      <span>03</span>BCH moves. The chain records it.
-                    </li>
-                  </ol>
-                </div>
-              </div>
-              <div className="record-foot">
-                <Link2 size={16} />
-                <span>One purchase. One connected record.</span>
-                <ArrowUpRight size={17} />
-              </div>
-            </div>
+            <ResolutionPlayer />
           </div>
         </section>
+        <div className="funding-notice container"><strong>Before moving BCH</strong><span>Paytaca v0.27.3 hides receive index zero. Keep existing zero-index requests unfunded.</span><Link href="/wallet-check" className="text-link">Check your wallet <ArrowRight size={16} /></Link></div>
         <div className="trust-strip">
           <div className="container">
             <span>
@@ -95,7 +54,7 @@ export default function Home() {
             </span>
             <span>
               <Check size={17} />
-              Independently checked BCH evidence
+              Independent BCH transaction checks
             </span>
           </div>
         </div>
@@ -170,6 +129,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+        <section className="inspection-section container"><div><h2>Don’t take a status label on trust.</h2><p>Inspect the running application’s access boundaries and the tests behind the refund ledger. No wallet or funds required.</p></div><Link className="button secondary" href="/lab">Open Break It Lab <ArrowRight size={18} /></Link></section>
         <CompetitionBanner />
       </main>
       <Footer />

@@ -31,6 +31,7 @@ export default function Guide() {
             Paytaca and Selene wallet preflight
           </a>. Check wallet versions and the merchant’s receiving address first.
         </p>
+        <div className="button-row"><Link className="button secondary" href="/#play">Play the Resolution</Link><Link className="text-link" href="/lab">Inspect the read-only Break It Lab</Link></div>
         <ol className="guide-list">
           <li>
             <span className="guide-num">01</span>

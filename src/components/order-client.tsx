@@ -23,6 +23,7 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
     [error, setError] = useState(''),
     [busy, setBusy] = useState(''),
     [notice, setNotice] = useState(''),
+    [noticeTone, setNoticeTone] = useState<'neutral' | 'warning' | 'success'>('neutral'),
     [firstIndex, setFirstIndex] = useState(0);
   const { wc, network, source, sign } = useWallet(),
     access = useRef<string | undefined>(undefined),
@@ -82,6 +83,7 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
     setBusy(operation);
     setError('');
     setNotice('');
+    setNoticeTone('neutral');
     try {
       await fn();
       await refresh();
@@ -129,6 +131,7 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
       }
       const result = await api<AttemptView>(`attempts/${a.id}/sign`, { raw }, access.current);
       sessionStorage.removeItem(storageKey);
+      setNoticeTone(result.state === 'confirmed' ? 'success' : 'warning');
       setNotice(
         result.state === 'confirmed'
           ? 'The new transaction is independently observed and confirmed.'
@@ -220,8 +223,8 @@ export function OrderClient({ id, merchant = false }: { id: string; merchant?: b
       )}
       {error && <ServiceError error={error} />}{' '}
       {notice && (
-        <div className="alert success" role="status">
-          <Check size={18} />
+        <div className={`alert ${noticeTone}`} role="status">
+          {noticeTone === 'success' ? <Check size={18} /> : <CircleAlert size={18} />}
           <span>{notice}</span>
         </div>
       )}

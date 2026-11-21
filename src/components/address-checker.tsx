@@ -30,7 +30,7 @@ function AddressComparison({ address, index }: Props) {
       const found = await findReceiveIndex(receive.xpub, native, network, 256, controller.signal);
       controller.signal.throwIfAborted();
       setResult(found === null
-        ? 'No match in receive indices 0–255. This does not prove incompatibility: a later index or a different selected account may explain it. Stop funding until resolved.'
+        ? 'No match in receive indices 0 through 255. This does not prove incompatibility: a later index or a different selected account may explain it. Stop funding until resolved.'
         : address && index === found && sameDestination(native, address, network)
           ? `Exact destination match at receive index ${found}. This is a public-address comparison, not a cryptographic ownership proof. Review the same destination in the native wallet.`
           : `Native Receive matches the advertised chain at index ${found}.${index !== undefined ? ` This request uses index ${index}; these are different destinations.` : ''} A chain match does not prove control of another index.`);
@@ -43,11 +43,11 @@ function AddressComparison({ address, index }: Props) {
     <p>Open Receive in your native wallet, choose BCH and the same personal wallet, then copy its public address. Paste only the address, with its network prefix.</p>
     <WalletButton />
     <form onSubmit={check}>
-      <label htmlFor={`native-address-${index ?? 'wallet'}`}>Address copied from the native wallet</label>
+      <div className="field"><label htmlFor={`native-address-${index ?? 'wallet'}`}>Address copied from the native wallet</label>
       <input id={`native-address-${index ?? 'wallet'}`} value={native} onChange={e => { task.current?.abort(); setBusy(false); setNative(e.target.value); setResult(''); }} maxLength={120} autoComplete="off" spellCheck={false} placeholder="bitcoincash:… or bchtest:…" required />
-      <button className="button secondary" disabled={busy || wc.state !== 'connected'}>{busy ? 'Comparing locally…' : 'Compare address locally'}</button>
+      </div><button className="button secondary" disabled={busy || wc.state !== 'connected'}>{busy ? 'Comparing locally…' : 'Compare address locally'}</button>
     </form>
-    <p className="fine">Runs only in this browser. No signing, key export, address upload, database write or blockchain transaction. Searches receive indices 0–255. Equivalent token-aware addresses are compared by destination.</p>
+    <p className="fine">Runs only in this browser. No signing, key export, address upload, database write or blockchain transaction. Searches receive indices 0 through 255. Equivalent token-aware addresses are compared by destination.</p>
     <p role="status" className="comparison-result">{result}</p>
     {index === 0 && <p className="alert warning">Funding remains paused. Paytaca 0.27.3 hides receive index zero. A later-index match cannot verify this request’s exact address.</p>}
   </section>;

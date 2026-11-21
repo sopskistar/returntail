@@ -44,3 +44,7 @@ On November 17 at 13:33:33 UTC, the actual verification path retrieved **an unre
 Explorer: use the actual network-specific link on the purchase and resolution receipt. A valid-looking hash is not evidence. Confirm byte-derived identity, recipient output, amount, merkle inclusion and witness agreement.
 
 What remains an application assertion: original-order association, customer's reason, merchant decision, internal reserved balance and decision history. Chain facts are transaction outputs and inclusion. Controls cannot prevent extra manual transfers outside ReturnTail.
+
+## Physical-wallet report — November 20 (not an on-chain proof)
+
+Reported directly: Paytaca v0.27.3 on Samsung S24 Ultra connected through WizardConnect; the public merchant receiving key and a real payment request were saved on production. Its receive index zero differs from native Receive. **No BCH transferred.** Native release source reserves receiving0/0 for message encryption and hides it in Receive. Exact destination control remains unverified; the request is preserved with new funding blocked. A local public-chain comparison is now available, but cannot prove hidden-index control. See [safe address preflight](WALLET_ADDRESS_PREFLIGHT.md). Selene physical pairing/signing and all app payment/refund txids remain pending. This is reported wallet/setup evidence, not independent BCH transaction evidence.

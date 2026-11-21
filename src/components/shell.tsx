@@ -33,6 +33,8 @@ export function Footer() {
         </div>
         <nav aria-label="Footer navigation">
           <Link href="/guide">Judge walkthrough</Link>
+          <Link href="/lab">Break It Lab</Link>
+          <Link href="/wallet-check">Wallet preflight</Link>
           <Link href="/privacy">Privacy</Link>
           <a href="https://github.com/sopskistar/returntail" target="_blank" rel="noreferrer">
             <Code2 size={16} />
