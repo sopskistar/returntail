@@ -72,7 +72,7 @@ function Footnote() {
       }}
     >
       <span>Local application preview — no funds transferred</span>
-      <span>Mainnet proof pending</span>
+      <span>Reported mainnet run — independent proof pending</span>
     </div>
   );
 }
@@ -126,7 +126,7 @@ function Opening() {
         </p>
       </Entrance>
       <div style={{ position: 'absolute', left: 88, bottom: 65, fontSize: 23 }}>
-        Local application preview — no funds transferred. Mainnet proof pending.
+        Local QA captures — no wallet transaction shown.
       </div>
     </AbsoluteFill>
   );

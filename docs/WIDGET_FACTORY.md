@@ -1,13 +1,22 @@
-# Widget Factory presentation content
+# Widget Factory deck — content for the existing Google Slides presentation
 
-Use this as content guidance for the separately prepared Google Slides deck. Its publicly viewable HTTPS URL is pending. No separate presentation application is needed.
+The user's existing deck is the presentation to finish. Do not create or substitute another deck. The public URL has not been provided to this workspace, so no slide content or `WIDGET_FACTORY_URL` can be edited/verified here. Use the organizer's [Widget Factory template](https://docs.google.com/presentation/d/1Yfuk9CJkf4U9M_WukcELhumWgj3Ak6345Ewy8hSp-Hk/edit?usp=sharing) and preserve the existing design. A damaged-parcel story is hypothetical framing, not this self-test.
 
-1. **ReturnTail — Make it right. Make it verifiable.** A payment problem should not become a trust problem.
-2. **The moment after checkout:** a parcel is damaged or an item is unavailable. A customer needs a refund; the merchant needs the correct destination and an auditable decision.
-3. **One connected resolution:** unique-address order → real wallet payment → independent verification → customer request → merchant approval → merchant wallet signature → new BCH refund → verified receipt.
-4. **What makes this useful:** atomic partial-refund budgets, durable uncertain-broadcast attempts, output-level purchase allocation, public-safe resolution proof. A generic wallet/invoice generator does not provide this connected support workflow.
-5. **Technical evidence:** parameterized PostgreSQL transactions, row/advisory locks, unique output and input identities, BCH VM signature validation, 0x61 flags, raw-byte intent checks, merkle inclusion and mainnet provider witness. Show actual test totals from the final release report.
-6. **Real mainnet proof:** insert the genuine verified payment and refund receipt only after execution. Until then this slide explicitly says pending.
-7. **Business:** independent BCH merchants; hosted support/audit subscription hypothesis, self-hostable open source. No invented traction or customer metrics.
-8. **Honest limits:** wallet compatibility and mainnet human gates; public infrastructure trust; no custodial funds; no prevention of out-of-app manual transfers.
-9. **Links:** verified live site, public GitHub, actual demo video, proof ledger, provided CashTokens donation address, source-work disclosure. Include only URLs that exist and were checked.
+## Recommended compact story
+
+1. **After checkout is where trust gets tested.** A hypothetical damaged parcel makes the problem concrete: how can a merchant make a small refund without losing track of the customer, decision, destination, or payment?
+2. **One connected workflow.** Unique-address BCH purchase → transaction verification → customer request → merchant decision → merchant wallet authorization → new BCH refund → privacy-limited public proof.
+3. **The real reported self-test.** 10,000 sats paid by Selene; 4,000 sats refunded with Paytaca after a displayed 454-sat network fee; an additional 7,000-sat approval was rejected because 4,000 sats were already reserved. Explicitly label these as first-hand production results and self-testing. Do not present the supplied purchase txid as independently verified: three current external lookups returned not found, and the refund id/evidence has not been reconciled from production.
+4. **A decision does not move money.** Approval atomically reserves the available balance; a separate Paytaca signature authorizes a new transaction. Broadcast, observation, and confirmed inclusion are different states.
+5. **What the chain can establish.** Only after checking exact transaction bytes: txid, matching output amount/index, block inclusion, block identity and provider witness. The merchant approval, association to the purchase, and 4,000/6,000 reservation ledger are ReturnTail records.
+6. **Why it can matter.** Small BCH merchants can make direct partial refunds with an explicit decision trail while retaining wallet custody. Business hypothesis: paid support/audit tooling or hosted subscriptions; no traction or revenue claim is evidenced.
+7. **Honest limits.** Self-test, not an external customer outcome; no custodial account; cannot prevent out-of-app transfers; xpub/pairing is not ownership proof; proof depends on public nodes/providers; current scope is standard P2PKH BCH and bounded receive discovery.
+8. **Links and disclosure.** Live application, public GitHub, actual receipt once enabled, the existing deck, final demo once produced, CashTokens-compatible EMBER donation address, and source-work disclosure. Show only checked URLs and no private customer link, reason, wallet balance or credentials.
+
+## Verification checklist before the slides state “confirmed”
+
+- Independently locate the exact purchase and refund txids using two BCH providers; reconcile the supplied payment hash if it remains not found.
+- Read the payment/refund output index, amount, block height/hash and current confirmation count from transaction data, not the slide or app label.
+- Retrieve the refund database UUID and verify its logged-out public-safe receipt.
+- Confirm the approved 4,000 and rejected 7,000 outcomes in the authenticated production order/accounting trail.
+- Include the final commit SHA and only current, reproducible test totals. Do not copy old totals from prior release reports.

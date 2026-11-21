@@ -4,7 +4,7 @@
 
 Non-custodial Bitcoin Cash purchase-to-refund resolution: unique-address payment requests, independent output verification, customer requests, atomic merchant approvals, genuine WizardConnect signing, durable broadcasts, and public-safe resolution receipts.
 
-The live application is [returntail.vercel.app](https://returntail.vercel.app). Neon migration, HTTPS authentication, profile persistence and the deployed runtime's connections to two BCH mainnet providers have been verified. **No ReturnTail mainnet payment or refund has been executed yet.** Physical-wallet signing and funded settlement remain explicit verification gates; infrastructure checks are not app transaction proof.
+The live application is [returntail.vercel.app](https://returntail.vercel.app). The creator reports completing a physical-wallet mainnet purchase and partial refund in production. The supplied purchase txid is recorded in [the evidence ledger](docs/MAINNET_PROOF.md), but current independent lookups did not find it; the refund txid and refund record ID were not accessible without the authenticated merchant session. Treat both transaction and application evidence as pending independent verification until that ledger is completed. Infrastructure health alone is not transaction proof.
 
 ## Run locally
 
@@ -74,6 +74,6 @@ The optional mainnet probe validates an **unrelated public transaction**, merkle
 
 The existing Vercel production project deploys from `main`. Its Next.js build configuration applies the checksum-verified Neon migration before building; preview builds skip automatic migrations. Cron requires CRON_SECRET; the free schedule is daily, while open receipt pages also reconcile pending transactions periodically. See [deployment operations](docs/DEPLOYMENT.md).
 
-Start with the [wallet and deployment checklist](docs/OWNER_CHECKLIST.md) and [reviewed wallet compatibility](docs/WALLET_READINESS.md). [Build status](docs/BUILD_STATUS.md), [mainnet proof](docs/MAINNET_PROOF.md), [security tests](docs/SECURITY_TESTS.md), [architecture](docs/ARCHITECTURE.md) and [submission status](docs/SUBMISSION.md) separate verified results from pending evidence. The CashTokens donation setting is configured. The Google Slides presentation URL is pending; `PUBLIC_PROOF_REFUND_ID` stays unset until a genuine refund is independently confirmed.
+Start with the [final release checklist](docs/OWNER_CHECKLIST.md), [mainnet proof ledger](docs/MAINNET_PROOF.md), [security tests](docs/SECURITY_TESTS.md), [architecture](docs/ARCHITECTURE.md) and [submission draft](docs/SUBMISSION.md). Earlier build reports remain historical and are superseded where the proof ledger says so. The hosted evidence page currently has no published receipt. Set `PUBLIC_PROOF_REFUND_ID` only to the actual confirmed refund database UUID after reviewing the public-safe receipt.
 
 Original branding lives in `public/brand`, `DESIGN.md` and `docs/BRAND_GUIDE.md`. [Third-party notices](THIRD_PARTY_NOTICES.md) include SDK and OFL font licenses. The separate `video/` package reuses the installed Hackathon Video Studio tools; its rendered engineering preview is clearly labeled, and the final mainnet demo script awaits genuine wallet footage.

@@ -42,11 +42,11 @@ export default async function Evidence() {
           <ResolutionClient id={proofId} />
         ) : (
           <section className="evidence-empty">
-            <h2>Mainnet proof awaits execution.</h2>
+            <h2>Mainnet proof is not yet published.</h2>
             <p>
-              No verified mainnet purchase and refund have been published here yet. Once a real
-              payment-to-refund journey is confirmed, this page can link both transactions and the
-              public-safe resolution receipt.
+              A physical-wallet mainnet purchase and partial refund have been reported. The
+              independently checked transaction evidence and public receipt are not available here
+              yet. See the proof ledger for what is verified and what still needs reconciliation.
             </p>
             <a
               href="https://github.com/sopskistar/returntail/blob/main/docs/MAINNET_PROOF.md"
@@ -84,9 +84,9 @@ export default async function Evidence() {
         </p>
         <h2 id="submission">Competition submission status</h2>
         <p>
-          The public presentation is being prepared. The homepage lists the configured repository
-          and CashTokens donation details. A genuine mainnet payment-to-refund proof, registration,
-          workshop roll-call and Telegram verification still need evidence before submission.
+          The presentation link, registration, workshop roll-call and Telegram verification must be
+          checked before submission. The proof ledger distinguishes reported workflow events from
+          independently verified BCH transaction data.
         </p>
         <h2>The honest limits</h2>
         <p>

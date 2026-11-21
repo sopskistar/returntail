@@ -1,12 +1,18 @@
 # Build status
 
-## Current verified capabilities — November 20, 2026
+## Current release evidence update — November 21, 2026
+
+The detailed milestones below are historical snapshots, not the current funded-wallet status. The creator reports successful hosted mainnet purchase/refund and over-limit-refund refusal with physical Selene and Paytaca wallets. The evidence ledger records the supplied purchase txid, but three independent current explorer/API lookups did not find it; the persisted refund txid, refund database UUID, and production decision audit are not accessible without the merchant session. The public `/evidence` page still has no configured proof. Do not repeat older “no transaction executed” text as current truth; retain it only as a timestamped description of the earlier state.
+
+Current code change: public resolution responses now expose an explicit allowlist of receipt metadata and omit full raw transaction observations and private application fields. Local release verification: typecheck PASS; lint PASS; unit tests 43/43; isolated PostgreSQL integration 90/90 including receipt privacy; localhost browser tests 18/18; production build PASS; npm audit 0 high-severity vulnerabilities; secret-pattern scan PASS across 142 candidate files. Desktop and mobile screenshots of `/evidence` were inspected at 1440×1000 and 390×844: the updated status is readable and neither viewport has horizontal overflow. These checks use local fixtures only. No production database records were queried or changed. Final demo video and final-deck URL remain unavailable in this workspace.
+
+## November 20 snapshot — historical, superseded by the current update above
 
 The safety code milestone is `da3afbc`, deployed to Vercel as `returntail-4lcj1sqqv-sopskistars-projects.vercel.app` (`dpl_6E2gbzriiW7m7n3WkY459UUPQmCP`). Build logs confirm checksum/no-op migration at 08:37:30 UTC and deployment at 08:38:02 UTC. Expanded hosted smoke passed **19/19** at 08:46:50 UTC after separately retained transient fetch failures. Authenticated production reconciliation returned HTTP200 with zero entries and did not broadcast.
 
 The frontend follow-up preserves branding/architecture and gives `/guide` a hypothetical damaged-item story, puts physical-wallet preflight before the workflow, removes stale presentation/donation copy, and fixes auth-trail containment at 834px, narrow 320px navigation and measured control/text contrast. Typecheck/lint, 34 unit tests, optimized build and 12 browser tests pass; final browser run32.1s. The unchanged backend's 42 PostgreSQL integration tests pass. All fixture tests remain localhost-only. Final visual audit and deployed frontend SHA are recorded below after verification.
 
-Still unverified: installed Paytaca/Selene sessions and signatures, merchant address control through the physical-wallet preflight, actual customer payment, partial refund, real excess-approval rejection and confirmed public-safe receipt. No BCH transfer was automated. `WIDGET_FACTORY_URL` awaits the public Google Slides link. `PUBLIC_PROOF_REFUND_ID` remains absent until genuine, independently confirmed refund evidence exists. Registration/roll-call/Telegram and official video rules require participant confirmation.
+At that November 20 snapshot, installed Paytaca/Selene sessions and signatures, merchant address control, actual customer payment, partial refund, real excess-approval rejection and confirmed public-safe receipt were unverified. No BCH transfer was automated. The creator subsequently reported completing the funded workflow; independent transaction and authenticated-record verification remains incomplete as detailed above. `WIDGET_FACTORY_URL`, `PUBLIC_PROOF_REFUND_ID`, registration/roll-call/Telegram and official video rules still require current confirmation.
 
 ## Payment and form safety — November 20, 2026
 

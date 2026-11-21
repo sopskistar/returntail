@@ -14,12 +14,30 @@ type Receipt = {
   network: Network;
   payment_txid: string;
   payment_vout: number;
+  payment_amount: number;
+  payment_confirmations: number;
+  payment_block_hash: string | null;
+  payment_evidence: {
+    provider: string | null;
+    witness: string | null;
+    merkleVerified: boolean;
+    blockHeight: number | null;
+    checkedAt: string | null;
+  } | null;
   refund_txid: string;
+  refund_amount: number;
+  refund_fee: number;
   confirmations: number;
   block_hash: string | null;
   updated_at: string;
   assertion: string;
-  evidence: { provider: string; witness: string | null; merkleVerified: boolean } | null;
+  evidence: {
+    provider: string | null;
+    witness: string | null;
+    merkleVerified: boolean;
+    blockHeight: number | null;
+    checkedAt: string | null;
+  } | null;
 };
 export function ResolutionClient({ id }: { id: string }) {
   const [data, setData] = useState<Receipt | null>(null),
@@ -40,7 +58,7 @@ export function ResolutionClient({ id }: { id: string }) {
       <div className="panel-body">
         <span className="label">Refund recipient amount</span>
         <div className="purchase-total">
-          {bch(data.amount)} <span>BCH</span>
+          {bch(data.refund_amount)} <span>BCH</span>
         </div>
         <StateTrail state={data.state} refund />
         <dl className="data-list" style={{ marginTop: 25 }}>
@@ -49,7 +67,9 @@ export function ResolutionClient({ id }: { id: string }) {
             <dd>{data.network}</dd>
           </div>
           <div className="long">
-            <dt>Original payment (output {data.payment_vout})</dt>
+            <dt>
+              Original payment — {bch(data.payment_amount)} BCH, output {data.payment_vout}
+            </dt>
             <dd>
               <a
                 className="wrap"
@@ -62,6 +82,22 @@ export function ResolutionClient({ id }: { id: string }) {
               </a>
             </dd>
           </div>
+          <div>
+            <dt>Purchase confirmations</dt>
+            <dd>{data.payment_confirmations}</dd>
+          </div>
+          {data.payment_evidence?.blockHeight !== null && data.payment_evidence?.blockHeight !== undefined && (
+            <div>
+              <dt>Purchase block height</dt>
+              <dd>{data.payment_evidence.blockHeight}</dd>
+            </div>
+          )}
+          {data.payment_block_hash && (
+            <div className="long">
+              <dt>Purchase block hash</dt>
+              <dd className="wrap">{data.payment_block_hash}</dd>
+            </div>
+          )}
           <div className="long">
             <dt>New refund transaction</dt>
             <dd>
@@ -77,12 +113,32 @@ export function ResolutionClient({ id }: { id: string }) {
             </dd>
           </div>
           <div>
+            <dt>Refund network fee</dt>
+            <dd>{bch(data.refund_fee)} BCH</dd>
+          </div>
+          <div>
             <dt>Refund confirmations</dt>
             <dd>{data.confirmations}</dd>
           </div>
+          {data.evidence?.blockHeight !== null && data.evidence?.blockHeight !== undefined && (
+            <div>
+              <dt>Refund block height</dt>
+              <dd>{data.evidence.blockHeight}</dd>
+            </div>
+          )}
+          {data.block_hash && (
+            <div className="long">
+              <dt>Refund block hash</dt>
+              <dd className="wrap">{data.block_hash}</dd>
+            </div>
+          )}
           <div>
-            <dt>Last observed check</dt>
-            <dd>{new Date(data.updated_at).toLocaleString()}</dd>
+            <dt>Refund proof check</dt>
+            <dd>
+              {data.evidence?.checkedAt
+                ? new Date(data.evidence.checkedAt).toLocaleString()
+                : new Date(data.updated_at).toLocaleString()}
+            </dd>
           </div>
         </dl>
         <div className="subtle-divider" />
@@ -95,6 +151,9 @@ export function ResolutionClient({ id }: { id: string }) {
           {data.evidence?.witness
             ? `A second provider (${data.evidence.witness}) agreed on the transaction and block.`
             : ''}
+          {data.payment_evidence?.merkleVerified
+            ? ' The original payment also has a verified merkle inclusion proof.'
+            : ' The original payment inclusion proof is not available in this receipt.'}
         </p>
         <p className="fine" style={{ marginTop: 15 }}>
           {data.assertion}

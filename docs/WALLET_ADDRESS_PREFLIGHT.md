@@ -2,7 +2,7 @@
 
 ## Reported result and funding gate
 
-Paytaca **v0.27.3**, Android on **Samsung S24 Ultra**, successfully connected through WizardConnect. A merchant public receiving key was saved and a payment request was created. Its receive index is zero and its address differs from Paytaca’s normal Receive screen. **No BCH was transferred. The destination is not independently ownership-verified.** Account, wallet connection, payment request, destination and private access capability must remain intact.
+Paytaca **v0.27.3**, Android on **Samsung S24 Ultra**, successfully connected through WizardConnect. A merchant public receiving key was saved and a payment request was created. Its receive index is zero and its address differs from Paytaca’s normal Receive screen. At the November 20 snapshot, **no BCH had been sent to the index-zero request** and the destination was not independently ownership-verified. A later 10,000-sat mainnet payment was reported for a distinct request; see the [current proof ledger](MAINNET_PROOF.md). Account, wallet connection, payment request, destination and private access capability must remain intact.
 
 ## Why zero differs
 

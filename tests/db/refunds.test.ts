@@ -502,6 +502,48 @@ describe('durable transaction settlement state machine', () => {
     expect(await balance()).toMatchObject({ settled: '10000' });
     await expect(request(546)).rejects.toThrow('exceeds');
   });
+  it('publishes a receipt with whitelisted evidence and no raw transaction or customer fields', async () => {
+    const { r, a } = await prepared(),
+      raw = signFixture(a.plan),
+      checkedAt = new Date().toISOString(),
+      provider: Chain = {
+        ...fixtureChain(),
+        broadcast: async () => txid(raw),
+        observe: async (id) => ({
+          network: 'chipnet',
+          txid: id,
+          raw,
+          confirmations: 3,
+          blockHeight: 200,
+          blockHash: 'dd'.repeat(32),
+          provider: 'ISOLATED_FIXTURE',
+          witness: 'ISOLATED_WITNESS',
+          checkedAt,
+          merkleVerified: true,
+        }),
+      };
+    await service.submitSigned(a.id, { merchantId }, raw, provider);
+    const receipt = await service.publicResolution(r.id),
+      encoded = JSON.stringify(receipt);
+    expect(receipt).toMatchObject({
+      state: 'confirmed',
+      payment_amount: 10000,
+      amount: 10000,
+      refund_amount: 10000,
+      refund_fee: a.plan.fee,
+      evidence: {
+        provider: 'ISOLATED_FIXTURE',
+        witness: 'ISOLATED_WITNESS',
+        merkleVerified: true,
+        blockHeight: 200,
+        checkedAt,
+      },
+    });
+    expect(encoded).not.toContain(raw);
+    expect(encoded).not.toContain(destination);
+    expect(encoded).not.toContain('Isolated test damaged parcel');
+    expect(encoded).not.toContain('evidence\\":{\\"raw');
+  });
   it('cannot prepare a replacement after an uncertain signed broadcast', async () => {
     const { a, r } = await prepared();
     await service.submitSigned(

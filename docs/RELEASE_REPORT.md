@@ -1,5 +1,15 @@
 # ReturnTail verification handoff — November 21, 2026 UTC
 
+## Superseding update — reported mainnet purchase and refund
+
+The report below is the state captured before the funded journey. Its statements that no mainnet payment/refund had occurred are historical and superseded by the creator's November 21, 2026 report: a 10,000-sat Selene payment, 4,000-sat Paytaca-signed refund (454-sat displayed fee), and refusal/rejection of a further 7,000-sat refund request. This is first-hand production evidence reported by the creator, but this session could not retrieve authenticated production records or independently verify the chain transactions.
+
+The supplied purchase txid `2ea6feed4d77ad7af9bbd69038eb0c76f1d8a536835041828da0298189b51c65` was not found by current lookups at Selene Explorer, Blockchain.com Haskoin, or Blockchair. The refund txid and refund database UUID are not known here. The current hosted `/evidence` page has no published receipt. See the updated [proof ledger](MAINNET_PROOF.md) and [final submission checklist](OWNER_CHECKLIST.md). No source of transaction identifiers, output amounts or block data has been guessed.
+
+The public-resolution endpoint was also reviewed and found to select complete persisted evidence, including transaction bytes. This release adds a whitelist projection and a local PostgreSQL regression fixture to exclude raw bytes and customer-specific fields. The test demonstrates code behavior only; it does not expose or verify production records.
+
+Local verification for this release: typecheck and lint passed; 43 unit tests, 90 isolated PostgreSQL tests, and 18 localhost browser tests passed; production build completed; audit found 0 high-severity vulnerabilities; secret-pattern scan passed across 142 candidate files. The `/evidence` page was captured and inspected at desktop and mobile sizes with no horizontal overflow. The 45-second engineering preview was not re-rendered as a final demo; the final video remains blocked on independently reconciled production identifiers and authentic capture evidence.
+
 ## Decision: begin unfunded preflight only
 
 **Do not fund the preserved index-zero request. It is not independently ownership-verified.** No ReturnTail BCH payment/refund was executed, no mainnet proof was added, and the hackathon was not submitted.

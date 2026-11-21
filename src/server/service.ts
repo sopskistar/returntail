@@ -6,6 +6,8 @@ import {
   deriveAddress,
   validateSigned,
   verifyPayment,
+  type Network,
+  type Plan,
   type Utxo,
 } from '@/core/bch';
 import { invariant, AppError } from '@/core/errors';
@@ -1230,14 +1232,64 @@ export async function reconcileOrder(
   return orderDetail(id, actor);
 }
 export async function publicResolution(refundId: string) {
-  const r = await pool().query(
-    `SELECT r.id,r.state,r.amount,o.reference,o.network,p.txid AS payment_txid,p.vout AS payment_vout,a.txid AS refund_txid,a.confirmations,a.block_hash,a.evidence,a.updated_at FROM refunds r JOIN orders o ON o.id=r.order_id JOIN payments p ON p.order_id=o.id JOIN attempts a ON a.refund_id=r.id WHERE r.id=$1 AND a.txid IS NOT NULL`,
+  const r = await pool().query<{
+    id: string;
+    state: string;
+    amount: string;
+    reference: string;
+    network: Network;
+    payment_txid: string;
+    payment_vout: number;
+    payment_amount: string;
+    payment_confirmations: number;
+    payment_block_hash: string | null;
+    payment_evidence: Record<string, unknown> | null;
+    refund_txid: string;
+    refund_plan: Pick<Plan, 'amount' | 'fee'>;
+    confirmations: number;
+    block_hash: string | null;
+    evidence: Record<string, unknown> | null;
+    updated_at: Date;
+  }>(
+    `SELECT r.id,r.state,r.amount,o.reference,o.network,
+      p.txid AS payment_txid,p.vout AS payment_vout,p.amount AS payment_amount,
+      p.confirmations AS payment_confirmations,p.block_hash AS payment_block_hash,p.evidence AS payment_evidence,
+      a.txid AS refund_txid,a.plan AS refund_plan,a.confirmations,a.block_hash,a.evidence,a.updated_at
+     FROM refunds r JOIN orders o ON o.id=r.order_id JOIN payments p ON p.order_id=o.id
+     JOIN attempts a ON a.refund_id=r.id WHERE r.id=$1 AND a.txid IS NOT NULL`,
     [refundId],
   );
   invariant(r.rows[0], 'NOT_FOUND', 'Resolution receipt not found.', 404);
+  const row = r.rows[0],
+    publicEvidence = (evidence: Record<string, unknown> | null) =>
+      evidence
+        ? {
+            provider: typeof evidence.provider === 'string' ? evidence.provider : null,
+            witness: typeof evidence.witness === 'string' ? evidence.witness : null,
+            merkleVerified: evidence.merkleVerified === true,
+            blockHeight: typeof evidence.blockHeight === 'number' ? evidence.blockHeight : null,
+            checkedAt: typeof evidence.checkedAt === 'string' ? evidence.checkedAt : null,
+          }
+        : null;
   return {
-    ...r.rows[0],
-    amount: Number(r.rows[0].amount),
+    id: row.id,
+    state: row.state,
+    reference: row.reference,
+    network: row.network,
+    amount: Number(row.amount),
+    payment_txid: row.payment_txid,
+    payment_vout: row.payment_vout,
+    payment_amount: Number(row.payment_amount),
+    payment_confirmations: row.payment_confirmations,
+    payment_block_hash: row.payment_block_hash,
+    payment_evidence: publicEvidence(row.payment_evidence),
+    refund_txid: row.refund_txid,
+    refund_amount: Number(row.refund_plan.amount),
+    refund_fee: Number(row.refund_plan.fee),
+    confirmations: row.confirmations,
+    block_hash: row.block_hash,
+    evidence: publicEvidence(row.evidence),
+    updated_at: row.updated_at,
     assertion:
       'Merchant approval and purchase association are application records. Transaction outputs and inclusion are independently checked network evidence.',
   };
