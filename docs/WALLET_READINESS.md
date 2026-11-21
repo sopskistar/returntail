@@ -34,6 +34,14 @@ Review network, original purchase, recipient, integer-satoshi amount, fee, total
 
 ReturnTail validates unchanged transaction fields and every signature against independently retrieved source outputs, then durably saves signed bytes and txid before broadcasting. A timeout retains reservations. Reconcile first; recovery only rebroadcasts identical saved bytes. Never prepare a replacement with new inputs while the prior fate is unknown. Confirmed settlement converts reserved to settled once; reorgs retain accounting and flag review.
 
+### Signing failure diagnosis — November 21, 2026
+
+A reported Selene checkout showed “The wallet could not complete this request. Check your connection and try again.” while the displayed attempt remained `awaiting_signature`. That generic message came from ReturnTail's client error mapping, which erased the distinction between WizardConnect submission failure, no wallet response, explicit wallet rejection, and returned signature validation failure. The old client did not retain a safe category, so the exact historical branch cannot be reconstructed from that message. A client-side signing failure occurs before ReturnTail posts signed bytes; it does not establish whether Selene itself broadcast anything.
+
+The signing request uses the documented `hdwalletv1` shape: unsigned transaction hex, source-output records, exact `[inputIndex, pathName, addressIndex]` entries, and `broadcast:false`. ReturnTail validates unchanged transaction intent, `SIGHASH_ALL | FORKID | UTXOS` (`0x61`), and each signature against the source outputs before it can submit signed bytes. The request/response events are inspected only in memory to classify progress. The interface now reports a short failure stage and allowlisted code; it does not log or display raw relay errors, transaction bytes, wallet session credentials, or customer access tokens.
+
+Before another authorization, use **Check payment** once on the existing customer checkout. This read-only check searches the exact order address and verifies any matching chain transaction. If payment appears, stop and let the order reconcile; if the check cannot establish a successful history response, stop and retry later. A result of no matching payment is only an observation at that check time, not proof that Selene did nothing. Review Selene's transaction activity as well before retrying. Do not create a second payment attempt or transfer to a different address.
+
 ## Genuine runtime evidence
 
 At 2026-11-20 07:41:15 UTC, authenticated `/api/jobs/network` on Vercel verified BCH checkpoints and matching mainnet tip header at height 978134 through `bch.imaginary.cash` and `bch0.kister.net`, block `000000000000000000e14ed5753390ed0c7e8f42d46c95ee729923f155af0c82`. No transfer, wallet response or app transaction is implied. The protected check queries no wallet addresses and cannot sign or broadcast.

@@ -11,7 +11,7 @@ import {
   explorer,
 } from '../src/core/bch';
 import { bch, sats, remaining } from '../src/core/money';
-import { walletError } from '../src/core/errors';
+import { walletError, walletFailure, WalletSigningError } from '../src/core/errors';
 import { signPlan } from '../src/client/wallet-adapter';
 import { assertOrigin } from '../src/server/security';
 import { verifyMerkle } from '../src/server/chain';
@@ -119,7 +119,7 @@ describe('wallet refusal and disconnection', () => {
     ).rejects.toThrow('Connect');
     expect(called).toBe(false);
   });
-  it('propagates wallet signature rejection without a broadcast', async () => {
+  it('treats a promise rejection without a protocol response as a submission failure', async () => {
     await expect(
       signPlan(
         {
@@ -131,7 +131,7 @@ describe('wallet refusal and disconnection', () => {
         true,
         fixturePlan(),
       ),
-    ).rejects.toThrow('rejected');
+    ).rejects.toMatchObject({ stage: 'relay_submission', code: 'WALLET_REQUEST_FAILED' });
   });
   it('passes broadcast:false and explicit source-output data', async () => {
     const p = fixturePlan();
@@ -143,6 +143,7 @@ describe('wallet refusal and disconnection', () => {
           requested = true;
           expect(req.transaction.broadcast).toBe(false);
           expect(req.transaction.sourceOutputs[0].valueSatoshis).toBe(100000n);
+          expect(req.inputPaths).toEqual(p.inputPaths);
           return {
             action: RelayMsgAction.SignTransactionResponse,
             sequence: 1,
@@ -157,9 +158,46 @@ describe('wallet refusal and disconnection', () => {
     expect(requested).toBe(true);
     expect(txid(raw)).toHaveLength(64);
   });
-  it('normalizes cancellation and uncertain outcome wording', () => {
-    expect(walletError(Error('reject'))).toContain('cancelled');
-    expect(walletError(Error('timeout'))).toContain('saved attempt');
+  it('reports sanitized signing failure stage and safe code without wallet text', () => {
+    const error = walletFailure(new DOMException('private relay detail', 'AbortError'));
+    expect(error.stage).toBe('signing_timeout');
+    expect(error.code).toBe('WALLET_RESPONSE_TIMEOUT');
+    expect(walletError(new DOMException('private relay detail', 'AbortError'))).not.toContain(
+      'private relay detail',
+    );
+    expect(walletError(new WalletSigningError('wallet_rejection', 'USER_REJECTED', 'safe'))).toContain(
+      'Wallet rejection (USER_REJECTED)',
+    );
+  });
+  it('distinguishes a wallet rejection from invalid returned transaction bytes', async () => {
+    const rejected = {
+      isWalletDiscovered: () => true,
+      signTransaction: async () => ({
+        action: RelayMsgAction.SignTransactionResponse as const,
+        sequence: 1,
+        time: 1,
+        signedTransaction: '',
+        error: 'USER_REJECTED',
+      }),
+    };
+    await expect(signPlan(rejected, true, fixturePlan())).rejects.toMatchObject({
+      stage: 'wallet_rejection',
+      code: 'USER_REJECTED',
+    });
+
+    const invalid = {
+      isWalletDiscovered: () => true,
+      signTransaction: async () => ({
+        action: RelayMsgAction.SignTransactionResponse as const,
+        sequence: 1,
+        time: 1,
+        signedTransaction: '00'.repeat(12),
+      }),
+    };
+    await expect(signPlan(invalid, true, fixturePlan())).rejects.toMatchObject({
+      stage: 'signed_transaction_validation',
+      code: 'INVALID_TRANSACTION',
+    });
   });
 });
 describe('integer accounting and CSRF', () => {
