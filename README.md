@@ -122,3 +122,15 @@ Built for **BCH BLAZE 2026**. The repository's earliest public commit is dated N
 **[Live app](https://returntail.vercel.app) · [Mainnet proof](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02) · [Presentation](https://docs.google.com/presentation/d/1dSwEQk5Qs9_TqOnJxOJmmFjK1PO3tGQLKaZ7u9cp12g/edit?usp=sharing)**
 
 **[Final demo video on YouTube](https://youtu.be/gKpCjxFewzc)**
+
+---
+
+## Engineering portfolio: payments, PostgreSQL and reliability
+
+**Architecture:** Vercel-deployed Next.js application and Neon/PostgreSQL persistence. Non-custodial BCH wallet signing via WizardConnect, independent chain-provider checks, atomic refund reservations, idempotent processing and a public verification receipt.
+
+**Engineering tools:** TypeScript, Next.js, PostgreSQL/Neon, Vercel, BCH network APIs, WizardConnect, Zod, Vitest, Playwright, deployment smoke checks and secret scanning.
+
+**Evidence:** [Mainnet self-test and limits](docs/MAINNET_PROOF.md) · [Security tests](docs/SECURITY_TESTS.md) · [Public proof receipt](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02).
+
+**Scope:** describes a verified **self-test**, not commercial processing volume or independent customer adoption. No Terraform, Kubernetes or full backup-and-restore lifecycle is claimed.
