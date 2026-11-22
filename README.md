@@ -125,12 +125,41 @@ Built for **BCH BLAZE 2026**. The repository's earliest public commit is dated N
 
 ---
 
-## Engineering portfolio: payments, PostgreSQL and reliability
+## Cloud Engineering & DevOps
 
-**Architecture:** Vercel-deployed Next.js application and Neon/PostgreSQL persistence. Non-custodial BCH wallet signing via WizardConnect, independent chain-provider checks, atomic refund reservations, idempotent processing and a public verification receipt.
+*Project-specific implementation record for technical interviews and portfolio review. Items below distinguish completed work from unverified or planned infrastructure.*
 
-**Engineering tools:** TypeScript, Next.js, PostgreSQL/Neon, Vercel, BCH network APIs, WizardConnect, Zod, Vitest, Playwright, deployment smoke checks and secret scanning.
+### Cloud platforms
+- Next.js application hosted on Vercel, with Neon PostgreSQL for payment/refund records, authorization and atomic balance reservations.
+- Public proof receipt can independently reference confirmed Bitcoin Cash transactions while wallet spending keys stay with users.
 
-**Evidence:** [Mainnet self-test and limits](docs/MAINNET_PROOF.md) · [Security tests](docs/SECURITY_TESTS.md) · [Public proof receipt](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02).
+### DevOps & CI/CD
+- Repository automated checks include unit/integration/browser journeys and release/security validation.
+- Mainnet testing, deployment smoke checks and operational setup are documented; container orchestration and infrastructure provisioning are not claimed.
 
-**Scope:** describes a verified **self-test**, not commercial processing volume or independent customer adoption. No Terraform, Kubernetes or full backup-and-restore lifecycle is claimed.
+### Networking & API engineering
+- Wallet pairing and explicit signing through WizardConnect; BCH network-provider reconciliation, idempotency and authorization checks.
+- API access-control boundaries, safe environment configuration and transaction-evidence verification.
+
+### Monitoring & reliability
+- Prevents cumulative over-refunding through atomic database reservations; records separate merchant approval, signing and network confirmation states.
+- Real-money purchase/refund **self-test** is publicly documented; no commercial transaction volume or independently tested restore procedure claimed.
+
+### Architecture & infrastructure diagram
+
+```mermaid
+flowchart LR
+  C[Customer] --> V[Next.js app on Vercel]
+  M[Merchant wallet] --> W[WizardConnect signing]
+  V --> N[(Neon PostgreSQL)]
+  W --> B[Bitcoin Cash network]
+  B --> P[Independent chain providers]
+  P --> V
+  V --> R[Public-safe resolution receipt]
+```
+
+**Deployment:** https://returntail.vercel.app
+
+**Technical documentation and proof:** [Deployment](docs/DEPLOYMENT.md) · [Mainnet self-test](docs/MAINNET_PROOF.md) · [Security regression tests](docs/SECURITY_TESTS.md) · [Public receipt](https://returntail.vercel.app/resolution/6c5fb204-f24e-4fa1-b944-d4ff710ecb02).
+
+**Evidence boundary:** The mainnet proof is a two-wallet self-test, not a third-party order. Do not claim Terraform, Kubernetes, full-node operation or completed recovery drills.
